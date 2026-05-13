@@ -1,0 +1,2529 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pixel Text Studio</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090a12;
+      --bg-soft: #101322;
+      --panel: rgba(17, 20, 34, .86);
+      --panel-2: rgba(25, 29, 48, .82);
+      --panel-3: rgba(33, 38, 62, .72);
+      --border: rgba(148, 163, 184, .18);
+      --border-strong: rgba(148, 163, 184, .34);
+      --text: #f8fafc;
+      --muted: #9aa6bd;
+      --muted-2: #6f7a91;
+      --accent: #8b5cf6;
+      --accent-2: #06b6d4;
+      --accent-3: #22c55e;
+      --danger: #fb7185;
+      --shadow: 0 22px 70px rgba(0, 0, 0, .36);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --sidebar: 390px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124, 92, 255, .28), transparent 34rem),
+        radial-gradient(circle at 78% 0%, rgba(6, 182, 212, .18), transparent 30rem),
+        radial-gradient(circle at 60% 100%, rgba(34, 197, 94, .10), transparent 28rem),
+        linear-gradient(135deg, #080911 0%, #111526 55%, #090a12 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), transparent 72%);
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(320px, var(--sidebar)) minmax(0, 1fr);
+      gap: 18px;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    aside {
+      height: calc(100vh - 36px);
+      overflow: auto;
+      padding: 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 163, 184, .32) transparent;
+    }
+
+    main {
+      min-width: 0;
+      height: calc(100vh - 36px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(15, 18, 32, .56);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 2px 0 16px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(139, 92, 246, .20), rgba(6, 182, 212, .08)),
+        rgba(255, 255, 255, .035);
+    }
+
+    .brand-icon {
+      width: 46px;
+      height: 46px;
+      flex: 0 0 46px;
+      display: grid;
+      place-items: center;
+      color: white;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 14px 32px rgba(124, 92, 255, .36);
+      font-size: 20px;
+    }
+
+    h1 {
+      font-size: 20px;
+      line-height: 1.15;
+      margin: 0;
+      letter-spacing: -.02em;
+    }
+
+    .brand p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      margin: 0 0 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #cbd5e1;
+    }
+
+    h2 i {
+      width: 18px;
+      color: var(--accent-2);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .group {
+      position: relative;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+      overflow: hidden;
+    }
+
+    .group::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.38), transparent);
+      opacity: .65;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: start;
+    }
+
+    .row > *,
+    .mini-grid > * {
+      min-width: 0;
+    }
+
+    .row.one { grid-template-columns: 1fr; }
+    .row.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      min-height: 40px;
+      padding: 10px 11px;
+      color: var(--text);
+      background: rgba(5, 7, 14, .72);
+      border: 1px solid rgba(148, 163, 184, .20);
+      border-radius: 12px;
+      outline: none;
+      transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+      font-family: inherit;
+      line-height: 1.35;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position:
+        calc(100% - 16px) 50%,
+        calc(100% - 11px) 50%;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 28px;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(139, 92, 246, .74);
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, .14);
+      background: rgba(7, 10, 20, .92);
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 42px;
+      padding: 3px;
+      background: rgba(5, 7, 14, .72);
+      border: 1px solid rgba(148, 163, 184, .20);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    button {
+      width: 100%;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid rgba(148, 163, 184, .22);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.025));
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 750;
+      letter-spacing: -.01em;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+      user-select: none;
+    }
+
+    button i {
+      width: 16px;
+      text-align: center;
+      color: #c4b5fd;
+      font-size: 14px;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(139, 92, 246, .68);
+      box-shadow: 0 12px 26px rgba(0,0,0,.24);
+      background: linear-gradient(180deg, rgba(139,92,246,.18), rgba(255,255,255,.035));
+    }
+
+    button:active { transform: translateY(0); }
+    button.active {
+      background: linear-gradient(135deg, rgba(139, 92, 246, .95), rgba(6, 182, 212, .85));
+      border-color: rgba(255, 255, 255, .28);
+      box-shadow: 0 14px 32px rgba(124, 92, 255, .32);
+    }
+    button.active i { color: white; }
+
+    button.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-color: rgba(255, 255, 255, .20);
+      box-shadow: 0 14px 32px rgba(124, 92, 255, .28);
+    }
+    button.primary i { color: white; }
+
+    button:disabled {
+      opacity: .42;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .range-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .range-head label { margin-bottom: 0; }
+    .range-head strong {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      padding: 4px 8px;
+      color: #e0e7ff;
+      font-size: 12px;
+      white-space: nowrap;
+      border-radius: 999px;
+      background: rgba(139,92,246,.16);
+      border: 1px solid rgba(139,92,246,.22);
+    }
+
+    .checkbox-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.3;
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .checkbox-row input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      flex: 0 0 auto;
+    }
+
+    .workspace-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .workspace-top h2 { margin: 0; }
+
+    .workspace-preview {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(139, 92, 246, .10), rgba(6, 182, 212, .05)),
+        rgba(10, 13, 24, .72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .workspace-preview-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .workspace-preview-head h2 {
+      margin: 4px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .workspace-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-2);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .workspace-preview-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(240px, .9fr);
+      gap: 12px;
+      align-items: end;
+    }
+
+    .workspace-preview-slider,
+    .workspace-preview-actions {
+      min-width: 0;
+    }
+
+    .workspace-preview-slider label {
+      margin-bottom: 8px;
+    }
+
+    .workspace-preview-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stage-wrap {
+      flex: 1;
+      min-height: 260px;
+      padding: 16px;
+      background:
+        linear-gradient(45deg, rgba(255,255,255,.045) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,.045) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255,255,255,.045) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.045) 75%),
+        rgba(5, 7, 14, .38);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      overflow: auto;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      background: #000;
+      border: 1px solid rgba(226, 232, 240, .20);
+      border-radius: 12px;
+      cursor: crosshair;
+      touch-action: none;
+      max-width: none;
+      box-shadow: 0 16px 45px rgba(0,0,0,.38);
+    }
+
+    .hint {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .hint code {
+      padding: 2px 5px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, .88);
+      border: 1px solid var(--border);
+      color: #c4b5fd;
+    }
+
+    .stats {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      max-width: 100%;
+      padding: 9px 12px;
+      color: #cbd5e1;
+      font-size: 13px;
+      background: rgba(15, 23, 42, .68);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .stats::before {
+      content: "1de";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--accent-2);
+    }
+
+    details.advanced-panel {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(5, 7, 14, .30);
+      overflow: hidden;
+    }
+
+    details.advanced-panel summary {
+      cursor: pointer;
+      padding: 12px;
+      font-weight: 800;
+      color: var(--text);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    details.advanced-panel summary::before {
+      content: "013";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--accent-2);
+    }
+
+    details.advanced-panel summary::after {
+      content: "078";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      margin-left: auto;
+      color: var(--muted);
+      transition: transform .18s ease;
+    }
+
+    details.advanced-panel[open] summary::after {
+      transform: rotate(180deg);
+    }
+
+    details.advanced-panel .advanced-body {
+      padding: 0 12px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: start;
+    }
+
+    .mini-grid.two { grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); }
+    .mini-grid.four { grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); }
+    .mini-grid.one { grid-template-columns: 1fr; }
+
+    .mini-grid .checkbox-row {
+      margin: 0;
+      padding: 10px;
+      background: rgba(5, 7, 14, .58);
+      border: 1px solid rgba(148, 163, 184, .18);
+      border-radius: 12px;
+      align-items: flex-start;
+    }
+
+    .section-label {
+      margin: 14px 0 9px;
+      color: #dbeafe;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 1180px) {
+      :root { --sidebar: 350px; }
+      .app { gap: 14px; padding: 14px; }
+      aside, main { height: calc(100vh - 28px); }
+      .row.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .workspace-preview-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+        min-height: 100vh;
+      }
+      aside, main {
+        height: auto;
+        min-height: auto;
+      }
+      main {
+        min-height: 70vh;
+        overflow: visible;
+      }
+      .stage-wrap {
+        min-height: 360px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app { padding: 10px; gap: 10px; }
+      aside, main { border-radius: 18px; padding: 12px; }
+      .brand { padding: 12px; }
+      .brand-icon { width: 40px; height: 40px; flex-basis: 40px; border-radius: 13px; }
+      h1 { font-size: 18px; }
+
+      .row,
+      .row.two,
+      .row.three,
+      .mini-grid,
+      .mini-grid.two,
+      .mini-grid.four,
+      .workspace-preview-grid,
+      .workspace-preview-actions {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        min-height: 44px;
+      }
+
+      .stats {
+        width: 100%;
+        border-radius: 14px;
+        white-space: normal;
+      }
+
+      .stage-wrap {
+        padding: 10px;
+        min-height: 300px;
+        border-radius: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-table-cells-large"></i></div>
+        <div>
+          <h1>Pixel Text Studio</h1>
+          <p>Pixel art editor + Algodoo object exporter</p>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2><i class="fa-solid fa-border-all"></i><span>Canvas</span></h2>
+        <div class="row three">
+          <div>
+            <label for="cols">Columns</label>
+            <input id="cols" type="number" min="1" max="300" value="80" />
+          </div>
+          <div>
+            <label for="rows">Rows</label>
+            <input id="rows" type="number" min="1" max="200" value="32" />
+          </div>
+          <div>
+            <label for="cellSize">Cell px</label>
+            <input id="cellSize" type="number" min="2" max="60" value="14" />
+          </div>
+        </div>
+        <button id="applySize"><i class="fa-solid fa-up-right-and-down-left-from-center"></i><span>Apply size</span></button>
+      </div>
+
+      <div class="group">
+        <h2><i class="fa-solid fa-pen-ruler"></i><span>Tools</span></h2>
+        <div class="row two">
+          <button data-tool="draw" class="tool active"><i class="fa-solid fa-pencil"></i><span>Draw</span></button>
+          <button data-tool="erase" class="tool"><i class="fa-solid fa-eraser"></i><span>Erase</span></button>
+        </div>
+        <div class="row two">
+          <button data-tool="fill" class="tool"><i class="fa-solid fa-fill-drip"></i><span>Fill</span></button>
+          <button data-tool="picker" class="tool"><i class="fa-solid fa-eye-dropper"></i><span>Pick color</span></button>
+        </div>
+        <div class="row one">
+          <div>
+            <label for="drawColor">Draw color</label>
+            <input id="drawColor" type="color" value="#ff00ff" />
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2><i class="fa-solid fa-palette"></i><span>Look</span></h2>
+        <div class="row two">
+          <div>
+            <label for="bgColor">Editor background</label>
+            <input id="bgColor" type="color" value="#000000" />
+          </div>
+          <div>
+            <label for="gridColor">Grid color</label>
+            <input id="gridColor" type="color" value="#484848" />
+          </div>
+        </div>
+        <label class="checkbox-row">
+          <input id="showGrid" type="checkbox" checked />
+          Show grid in editor
+        </label>
+        <div class="row two">
+          <div>
+            <label for="exportGap">Export pixel gap</label>
+            <input id="exportGap" type="number" min="0" max="20" value="1" />
+          </div>
+          <div>
+            <label for="exportScale">Algodoo export scale</label>
+            <input id="exportScale" type="number" min="1" max="10" value="4" />
+          </div>
+        </div>
+        <p class="hint">PNG export stays transparent and grid-free. Algodoo export scale creates a larger PNG so pixels stay sharper after import.</p>
+      </div>
+
+
+      <div class="group">
+        <h2><i class="fa-solid fa-font"></i><span>Pixel text</span></h2>
+        <div class="row one">
+          <div>
+            <label for="textValue">Text</label>
+            <textarea id="textValue" rows="3" placeholder="Nhập text muốn tạo pixel..."></textarea>
+          </div>
+        </div>
+        <div class="row three">
+          <div>
+            <label for="textScale">Scale</label>
+            <input id="textScale" type="number" min="1" max="12" value="2" />
+          </div>
+          <div>
+            <label for="pixelDensity">Pixel detail %</label>
+            <input id="pixelDensity" type="number" min="50" max="300" step="25" value="100" />
+          </div>
+          <div>
+            <label for="textPadding">Padding cells</label>
+            <input id="textPadding" type="number" min="0" max="100" value="1" />
+          </div>
+        </div>
+        <div class="row one">
+          <div>
+            <label for="lineGap">Line gap</label>
+            <input id="lineGap" type="number" min="0" max="80" value="2" />
+          </div>
+        </div>
+        <div class="row three">
+          <div>
+            <label for="textAlign">Align</label>
+            <select id="textAlign">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+          <div>
+            <label for="textX">Offset X</label>
+            <input id="textX" type="number" value="0" />
+          </div>
+          <div>
+            <label for="textY">Offset Y</label>
+            <input id="textY" type="number" value="0" />
+          </div>
+        </div>
+        <label class="checkbox-row">
+          <input id="autoFitText" type="checkbox" checked />
+          Auto resize columns/rows to fit text
+        </label>
+        <label class="checkbox-row">
+          <input id="rainbowText" type="checkbox" checked />
+          Rainbow text stripes
+        </label>
+        <div class="row three">
+          <button id="bakeText" class="primary"><i class="fa-solid fa-stamp"></i><span>Bake text</span></button>
+          <button id="fitText"><i class="fa-solid fa-text-width"></i><span>Fit text</span></button>
+          <button id="sample"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Sample</span></button>
+        </div>
+        <p class="hint">Text sẽ hiển thị realtime khi bạn gõ. <strong>Pixel detail %</strong> giúp cùng một text hiển thị với ít pixel hơn hoặc nhiều pixel hơn. Nếu muốn chỉnh tay từng pixel của chữ, hãy bấm <strong>Bake text</strong> để nhập chữ vào layer vẽ.</p>
+      </div>
+
+      <div class="group">
+        <h2><i class="fa-solid fa-cubes"></i><span>Algodoo objects</span></h2>
+        <div class="row two">
+          <div>
+            <label for="algodooPixelSize">Object size</label>
+            <input id="algodooPixelSize" type="number" min="0.005" max="5" step="0.005" value="0.08" />
+          </div>
+          <div>
+            <label for="algodooGap">Object gap</label>
+            <input id="algodooGap" type="number" min="0" max="5" step="0.005" value="0.01" />
+          </div>
+        </div>
+        <div class="row two">
+          <div>
+            <label for="algodooOriginX">Origin X</label>
+            <input id="algodooOriginX" type="number" step="0.1" value="0" />
+          </div>
+          <div>
+            <label for="algodooOriginY">Origin Y</label>
+            <input id="algodooOriginY" type="number" step="0.1" value="0" />
+          </div>
+        </div>
+        <div class="row two">
+          <div>
+            <label for="algodooObjectType">Object type</label>
+            <select id="algodooObjectType">
+              <option value="box">Box</option>
+              <option value="circle">Circle</option>
+            </select>
+          </div>
+          <div>
+            <label for="algodooMode">Export mode</label>
+            <select id="algodooMode">
+              <option value="pixel">Separate object for every pixel</option>
+              <option value="merge">Merge same-color pixels in each row (box only)</option>
+            </select>
+          </div>
+        </div>
+
+        <h2 style="margin-top: 12px;"><i class="fa-solid fa-gem"></i><span>Material</span></h2>
+        <div class="row three">
+          <div>
+            <label for="algodooMaterial">Preset</label>
+            <select id="algodooMaterial">
+              <option value="default">Default</option>
+              <option value="glass">Glass</option>
+              <option value="gold">Gold</option>
+              <option value="helium">Helium</option>
+              <option value="ice">Ice</option>
+              <option value="rubber">Rubber</option>
+              <option value="steel">Steel</option>
+              <option value="stone">Stone</option>
+              <option value="wood">Wood</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div>
+            <label for="algodooDensity">Density</label>
+            <input id="algodooDensity" type="number" step="0.01" value="1.00" />
+          </div>
+          <div>
+            <label for="algodooFriction">Friction</label>
+            <input id="algodooFriction" type="number" step="0.01" value="0.50" />
+          </div>
+        </div>
+        <div class="row three">
+          <div>
+            <label for="algodooRestitution">Restitution</label>
+            <input id="algodooRestitution" type="number" step="0.01" value="0.00" />
+          </div>
+          <div>
+            <label for="algodooAttraction">Attraction</label>
+            <input id="algodooAttraction" type="number" step="0.01" value="0.00" />
+          </div>
+          <div>
+            <label for="algodooAdhesion">Adhesion</label>
+            <input id="algodooAdhesion" type="number" step="0.01" value="0.00" />
+          </div>
+        </div>
+        <div class="row one">
+          <div>
+            <label for="algodooMaterialName">Material name</label>
+            <input id="algodooMaterialName" data-algodoo-field type="text" value="" placeholder="Default, Glass, Gold, Helium, Ice, Rubber, Steel, Stone, Wood..." />
+          </div>
+        </div>
+
+        <h2 style="margin-top: 12px;"><i class="fa-solid fa-code"></i><span>Script menu</span></h2>
+        <div class="row three">
+          <div>
+            <label for="algodooLayer">Layer</label>
+            <input id="algodooLayer" type="number" step="1" value="0" />
+          </div>
+          <div>
+            <label for="algodooZDepth">Z depth</label>
+            <input id="algodooZDepth" type="number" step="0.1" value="5" />
+          </div>
+          <div>
+            <label for="algodooEdgeBlur">Edge blur</label>
+            <input id="algodooEdgeBlur" type="number" step="0.01" value="0" />
+          </div>
+        </div>
+        <div class="row three">
+          <label class="checkbox-row">
+            <input id="algodooFixed" type="checkbox" checked />
+            Glued
+          </label>
+          <label class="checkbox-row">
+            <input id="algodooCollide" type="checkbox" checked />
+            Collision
+          </label>
+          <label class="checkbox-row">
+            <input id="algodooDrawBorder" type="checkbox" />
+            Border
+          </label>
+        </div>
+        <div class="row three">
+          <label class="checkbox-row">
+            <input id="algodooKiller" type="checkbox" />
+            Killer
+          </label>
+          <label class="checkbox-row">
+            <input id="algodooImmortal" type="checkbox" />
+            Immortal
+          </label>
+          <label class="checkbox-row">
+            <input id="algodooRuler" type="checkbox" />
+            Ruler
+          </label>
+        </div>
+        <div class="row three">
+          <label class="checkbox-row">
+            <input id="algodooShowForceArrows" type="checkbox" />
+            Force
+          </label>
+          <label class="checkbox-row">
+            <input id="algodooShowMomentum" type="checkbox" />
+            Momentum
+          </label>
+          <label class="checkbox-row">
+            <input id="algodooShowVelocity" type="checkbox" />
+            Velocity
+          </label>
+        </div>
+        <label class="checkbox-row">
+          <input id="algodooCollideWater" type="checkbox" />
+          Collide with water
+        </label>
+
+        <details class="advanced-panel">
+          <summary>Advanced script menu applied to every pixel</summary>
+          <div class="advanced-body">
+            <p class="hint">Các giá trị bên dưới sẽ được ghi vào mọi object pixel khi export .phn. Để trống một ô nếu không muốn ghi property đó. <code>entityID</code> và <code>geomID</code> do Algodoo tự tạo nên không export.</p>
+
+            <div class="section-label">Physics</div>
+            <div class="mini-grid three">
+              <div>
+                <label for="algodooCollideSet">collideSet</label>
+                <input id="algodooCollideSet" data-algodoo-field type="number" step="1" value="1023" />
+              </div>
+              <div>
+                <label for="algodooAirFrictionMult">airFrictionMult</label>
+                <input id="algodooAirFrictionMult" data-algodoo-field type="number" step="0.01" value="1.0" />
+              </div>
+              <div>
+                <label for="algodooInertiaMultiplier">inertiaMultiplier</label>
+                <input id="algodooInertiaMultiplier" data-algodoo-field type="number" step="0.01" value="1.0" />
+              </div>
+              <div>
+                <label for="algodooAngle">angle</label>
+                <input id="algodooAngle" data-algodoo-field type="number" step="0.01" value="0.0" />
+              </div>
+              <div>
+                <label for="algodooAngvel">angvel</label>
+                <input id="algodooAngvel" data-algodoo-field type="number" step="0.01" value="0.0" />
+              </div>
+              <div>
+                <label for="algodooAttractionType">attractionType</label>
+                <input id="algodooAttractionType" data-algodoo-field type="number" step="1" value="2" />
+              </div>
+            </div>
+            <div class="mini-grid three">
+              <div>
+                <label for="algodooBody">body</label>
+                <input id="algodooBody" data-algodoo-field type="text" value="" placeholder="0 nếu glued vào background" />
+              </div>
+              <div>
+                <label for="algodooMaterialVelocity">materialVelocity</label>
+                <input id="algodooMaterialVelocity" data-algodoo-field type="text" value="[0, 0]" />
+              </div>
+              <div>
+                <label for="algodooVel">vel</label>
+                <input id="algodooVel" data-algodoo-field type="text" value="[0, 0]" />
+              </div>
+              <div>
+                <label for="algodooVelocityDamping">velocityDamping</label>
+                <input id="algodooVelocityDamping" data-algodoo-field type="text" value="[0, 0, 0]" />
+              </div>
+              <div>
+                <label for="algodooTimeToLive">timeToLive</label>
+                <input id="algodooTimeToLive" data-algodoo-field type="text" value="" placeholder="+inf / để trống" />
+              </div>
+              <label class="checkbox-row">
+                <input id="algodooHeteroCollide" data-algodoo-field type="checkbox" />
+                heteroCollide
+              </label>
+            </div>
+
+            <div class="section-label">Controller</div>
+            <div class="mini-grid four">
+              <div>
+                <label for="algodooControllerAcc">controllerAcc</label>
+                <input id="algodooControllerAcc" data-algodoo-field type="number" step="0.1" value="11.0" />
+              </div>
+              <label class="checkbox-row">
+                <input id="algodooControllerInvertX" data-algodoo-field type="checkbox" />
+                controllerInvertX
+              </label>
+              <label class="checkbox-row">
+                <input id="algodooControllerInvertY" data-algodoo-field type="checkbox" />
+                controllerInvertY
+              </label>
+              <label class="checkbox-row">
+                <input id="algodooControllerReverseXY" data-algodoo-field type="checkbox" />
+                controllerReverseXY
+              </label>
+            </div>
+
+            <div class="section-label">Visual / texture / text</div>
+            <div class="mini-grid three">
+              <label class="checkbox-row">
+                <input id="algodooOpaqueBorders" data-algodoo-field type="checkbox" checked />
+                opaqueBorders
+              </label>
+              <label class="checkbox-row">
+                <input id="algodooDrawCake" data-algodoo-field type="checkbox" />
+                drawCake
+              </label>
+              <label class="checkbox-row">
+                <input id="algodooProtractor" data-algodoo-field type="checkbox" />
+                protractor
+              </label>
+              <div>
+                <label for="algodooReflectiveness">reflectiveness</label>
+                <input id="algodooReflectiveness" data-algodoo-field type="number" step="0.01" value="1.0" />
+              </div>
+              <div>
+                <label for="algodooRefractiveIndex">refractiveIndex</label>
+                <input id="algodooRefractiveIndex" data-algodoo-field type="number" step="0.01" value="1.5" />
+              </div>
+              <div>
+                <label for="algodooTextFontSize">textFontSize</label>
+                <input id="algodooTextFontSize" data-algodoo-field type="number" step="1" value="32" />
+              </div>
+            </div>
+            <div class="mini-grid two">
+              <div>
+                <label for="algodooTexture">texture</label>
+                <input id="algodooTexture" data-algodoo-field type="text" value="" placeholder="Tên texture nếu có" />
+              </div>
+              <div>
+                <label for="algodooResources">resources</label>
+                <input id="algodooResources" data-algodoo-field type="text" value="[]" />
+              </div>
+              <div>
+                <label for="algodooTextureClamped">textureClamped</label>
+                <input id="algodooTextureClamped" data-algodoo-field type="text" value="[false, false]" />
+              </div>
+              <div>
+                <label for="algodooTextureMatrix">textureMatrix</label>
+                <input id="algodooTextureMatrix" data-algodoo-field type="text" value="[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]" />
+              </div>
+              <div>
+                <label for="algodooText">text</label>
+                <input id="algodooText" data-algodoo-field type="text" value="" />
+              </div>
+              <div>
+                <label for="algodooTextFont">textFont</label>
+                <input id="algodooTextFont" data-algodoo-field type="text" value="Verdana" />
+              </div>
+              <div>
+                <label for="algodooTextColor">textColor</label>
+                <input id="algodooTextColor" data-algodoo-field type="text" value="[1, 1, 1, 1]" />
+              </div>
+              <div>
+                <label for="algodooTextScale">textScale</label>
+                <input id="algodooTextScale" data-algodoo-field type="number" step="0.01" value="0.1" />
+              </div>
+              <label class="checkbox-row">
+                <input id="algodooTextConstrained" data-algodoo-field type="checkbox" checked />
+                textConstrained
+              </label>
+            </div>
+
+            <div class="section-label">Events</div>
+            <div class="mini-grid two">
+              <div>
+                <label for="algodooOnClick">onClick</label>
+                <textarea id="algodooOnClick" data-algodoo-field rows="2">(e)=>{}</textarea>
+              </div>
+              <div>
+                <label for="algodooOnCollide">onCollide</label>
+                <textarea id="algodooOnCollide" data-algodoo-field rows="2">(e)=>{}</textarea>
+              </div>
+              <div>
+                <label for="algodooOnDie">onDie</label>
+                <textarea id="algodooOnDie" data-algodoo-field rows="2">(e)=>{}</textarea>
+              </div>
+              <div>
+                <label for="algodooOnHitByLaser">onHitByLaser</label>
+                <textarea id="algodooOnHitByLaser" data-algodoo-field rows="2">(e)=>{}</textarea>
+              </div>
+              <div>
+                <label for="algodooOnKey">onKey</label>
+                <textarea id="algodooOnKey" data-algodoo-field rows="2">(e)=>{}</textarea>
+              </div>
+              <div>
+                <label for="algodooOnSpawn">onSpawn</label>
+                <textarea id="algodooOnSpawn" data-algodoo-field rows="2">(e)=>{}</textarea>
+              </div>
+              <div>
+                <label for="algodooPostStep">postStep</label>
+                <textarea id="algodooPostStep" data-algodoo-field rows="2">(e)=>{}</textarea>
+              </div>
+              <div>
+                <label for="algodooUpdate">update</label>
+                <textarea id="algodooUpdate" data-algodoo-field rows="2">(e)=>{}</textarea>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div class="row one">
+          <div>
+            <label for="algodooExtraScript">Extra script properties applied to every object</label>
+            <textarea id="algodooExtraScript" rows="4" placeholder="Ví dụ: text := &quot;&quot;; controllerAcc := 11; velocityDamping := [0, 0, 0];"></textarea>
+          </div>
+        </div>
+
+        <button id="exportAlgodoo" class="primary"><i class="fa-solid fa-cube"></i><span>Export Algodoo .phn</span></button>
+        <p class="hint">Xuất file .phn tạo từng pixel thành object riêng trong Algodoo. Chọn Box hoặc Circle, chỉnh Material/Script một lần và tool sẽ áp dụng cho toàn bộ pixel.</p>
+      </div>
+
+      <div class="group">
+        <h2><i class="fa-solid fa-bolt"></i><span>Actions</span></h2>
+        <div class="row two">
+          <button id="undo" disabled><i class="fa-solid fa-rotate-left"></i><span>Undo</span></button>
+          <button id="redo" disabled><i class="fa-solid fa-rotate-right"></i><span>Next / Redo</span></button>
+        </div>
+        <div class="row two">
+          <button id="clear"><i class="fa-solid fa-trash-can"></i><span>Clear</span></button>
+          <button id="exportPng" class="primary"><i class="fa-solid fa-file-arrow-down"></i><span>Export PNG</span></button>
+        </div>
+        <p class="hint">Phím tắt: Ctrl/⌘ + Z để undo, Ctrl/⌘ + Y hoặc Shift + Ctrl/⌘ + Z để redo.</p>
+      </div>
+    </aside>
+
+    <main>
+      <section class="workspace-preview">
+        <div class="workspace-preview-head">
+          <div>
+            <div class="workspace-kicker"><i class="fa-solid fa-magnifying-glass-plus"></i><span>Preview controls</span></div>
+            <h2><i class="fa-solid fa-display"></i><span>Workspace preview</span></h2>
+          </div>
+          <strong id="previewZoomValue">100%</strong>
+        </div>
+        <div class="workspace-preview-grid">
+          <div class="workspace-preview-slider">
+            <label for="previewZoom">Preview zoom</label>
+            <input id="previewZoom" type="range" min="10" max="300" step="5" value="100" />
+            <p class="hint">Slider này chỉ phóng to/thu nhỏ vùng xem trước, không làm đổi kích thước PNG khi export.</p>
+          </div>
+          <div class="workspace-preview-actions">
+            <button id="fitPreview"><i class="fa-solid fa-arrows-left-right-to-line"></i><span>Fit width</span></button>
+            <button id="resetPreview"><i class="fa-solid fa-compress"></i><span>100%</span></button>
+          </div>
+        </div>
+      </section>
+
+      <div class="workspace-top">
+        <div>
+          <h2><i class="fa-solid fa-display"></i><span>Workspace</span></h2>
+        </div>
+        <div id="stats" class="stats"></div>
+      </div>
+      <div class="stage-wrap">
+        <canvas id="pixelCanvas"></canvas>
+      </div>
+      <p class="hint">Tip: draw by dragging. Live text is previewed in realtime. Algodoo preview supports Box/Circle, and merge mode with Box keeps scenes lighter.</p>
+    </main>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('pixelCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const els = {
+      cols: document.getElementById('cols'),
+      rows: document.getElementById('rows'),
+      cellSize: document.getElementById('cellSize'),
+      applySize: document.getElementById('applySize'),
+      drawColor: document.getElementById('drawColor'),
+      bgColor: document.getElementById('bgColor'),
+      gridColor: document.getElementById('gridColor'),
+      showGrid: document.getElementById('showGrid'),
+      exportGap: document.getElementById('exportGap'),
+      exportScale: document.getElementById('exportScale'),
+      previewZoom: document.getElementById('previewZoom'),
+      previewZoomValue: document.getElementById('previewZoomValue'),
+      fitPreview: document.getElementById('fitPreview'),
+      resetPreview: document.getElementById('resetPreview'),
+      textValue: document.getElementById('textValue'),
+      textX: document.getElementById('textX'),
+      textY: document.getElementById('textY'),
+      textScale: document.getElementById('textScale'),
+      pixelDensity: document.getElementById('pixelDensity'),
+      textAlign: document.getElementById('textAlign'),
+      autoFitText: document.getElementById('autoFitText'),
+      textPadding: document.getElementById('textPadding'),
+      lineGap: document.getElementById('lineGap'),
+      rainbowText: document.getElementById('rainbowText'),
+      bakeText: document.getElementById('bakeText'),
+      fitText: document.getElementById('fitText'),
+      sample: document.getElementById('sample'),
+      undo: document.getElementById('undo'),
+      redo: document.getElementById('redo'),
+      clear: document.getElementById('clear'),
+      exportPng: document.getElementById('exportPng'),
+      exportAlgodoo: document.getElementById('exportAlgodoo'),
+      algodooPixelSize: document.getElementById('algodooPixelSize'),
+      algodooGap: document.getElementById('algodooGap'),
+      algodooOriginX: document.getElementById('algodooOriginX'),
+      algodooOriginY: document.getElementById('algodooOriginY'),
+      algodooObjectType: document.getElementById('algodooObjectType'),
+      algodooMode: document.getElementById('algodooMode'),
+      algodooMaterial: document.getElementById('algodooMaterial'),
+      algodooDensity: document.getElementById('algodooDensity'),
+      algodooFriction: document.getElementById('algodooFriction'),
+      algodooRestitution: document.getElementById('algodooRestitution'),
+      algodooAttraction: document.getElementById('algodooAttraction'),
+      algodooAdhesion: document.getElementById('algodooAdhesion'),
+      algodooMaterialName: document.getElementById('algodooMaterialName'),
+      algodooLayer: document.getElementById('algodooLayer'),
+      algodooZDepth: document.getElementById('algodooZDepth'),
+      algodooEdgeBlur: document.getElementById('algodooEdgeBlur'),
+      algodooFixed: document.getElementById('algodooFixed'),
+      algodooCollide: document.getElementById('algodooCollide'),
+      algodooDrawBorder: document.getElementById('algodooDrawBorder'),
+      algodooKiller: document.getElementById('algodooKiller'),
+      algodooImmortal: document.getElementById('algodooImmortal'),
+      algodooRuler: document.getElementById('algodooRuler'),
+      algodooShowForceArrows: document.getElementById('algodooShowForceArrows'),
+      algodooShowMomentum: document.getElementById('algodooShowMomentum'),
+      algodooShowVelocity: document.getElementById('algodooShowVelocity'),
+      algodooCollideWater: document.getElementById('algodooCollideWater'),
+      algodooExtraScript: document.getElementById('algodooExtraScript'),
+      stats: document.getElementById('stats'),
+      stageWrap: document.querySelector('.stage-wrap')
+    };
+
+    const state = {
+      cols: 80,
+      rows: 32,
+      cell: 14,
+      pixels: [],
+      liveTextPixels: [],
+      tool: 'draw',
+      color: '#ff00ff',
+      bg: '#000000',
+      grid: '#484848',
+      showGrid: true,
+      viewZoom: 1,
+      history: [],
+      historyIndex: -1,
+      historyLimit: 80,
+      isDown: false,
+      lastCellKey: '',
+      textHistoryTimer: null
+    };
+
+    const RAINBOW = [
+      '#ff0000', '#ff8c00', '#ffff00', '#00ff00',
+      '#00d5ff', '#004cff', '#7a00ff', '#ff00ff'
+    ];
+
+    const ALGODOO_MATERIALS = {
+      default: { name: '', density: 1.00, friction: 0.50, restitution: 0.00, attraction: 0.00, adhesion: 0.00 },
+      glass:   { name: 'Glass', density: 2.50, friction: 0.10, restitution: 0.20, attraction: 0.00, adhesion: 0.00 },
+      gold:    { name: 'Gold', density: 19.30, friction: 0.50, restitution: 0.00, attraction: 0.00, adhesion: 0.00 },
+      helium:  { name: 'Helium', density: 0.05, friction: 0.10, restitution: 0.20, attraction: 0.00, adhesion: 0.00 },
+      ice:     { name: 'Ice', density: 0.92, friction: 0.02, restitution: 0.00, attraction: 0.00, adhesion: 0.00 },
+      rubber:  { name: 'Rubber', density: 1.20, friction: 1.00, restitution: 0.85, attraction: 0.00, adhesion: 0.00 },
+      steel:   { name: 'Steel', density: 7.80, friction: 0.40, restitution: 0.10, attraction: 0.00, adhesion: 0.00 },
+      stone:   { name: 'Stone', density: 2.50, friction: 0.70, restitution: 0.00, attraction: 0.00, adhesion: 0.00 },
+      wood:    { name: 'Wood', density: 0.70, friction: 0.50, restitution: 0.20, attraction: 0.00, adhesion: 0.00 },
+      custom:  { name: '', density: 1.00, friction: 0.50, restitution: 0.00, attraction: 0.00, adhesion: 0.00 }
+    };
+
+    const FONT_HEIGHT = 7;
+
+    const glyphCache = new Map();
+
+    const FONT = {
+      'A': ['01110','10001','10001','11111','10001','10001','10001'],
+      'B': ['11110','10001','10001','11110','10001','10001','11110'],
+      'C': ['01111','10000','10000','10000','10000','10000','01111'],
+      'D': ['11110','10001','10001','10001','10001','10001','11110'],
+      'E': ['11111','10000','10000','11110','10000','10000','11111'],
+      'F': ['11111','10000','10000','11110','10000','10000','10000'],
+      'G': ['01111','10000','10000','10011','10001','10001','01110'],
+      'H': ['10001','10001','10001','11111','10001','10001','10001'],
+      'I': ['11111','00100','00100','00100','00100','00100','11111'],
+      'J': ['00111','00010','00010','00010','10010','10010','01100'],
+      'K': ['10001','10010','10100','11000','10100','10010','10001'],
+      'L': ['10000','10000','10000','10000','10000','10000','11111'],
+      'M': ['10001','11011','10101','10101','10001','10001','10001'],
+      'N': ['10001','11001','10101','10011','10001','10001','10001'],
+      'O': ['01110','10001','10001','10001','10001','10001','01110'],
+      'P': ['11110','10001','10001','11110','10000','10000','10000'],
+      'Q': ['01110','10001','10001','10001','10101','10010','01101'],
+      'R': ['11110','10001','10001','11110','10100','10010','10001'],
+      'S': ['01111','10000','10000','01110','00001','00001','11110'],
+      'T': ['11111','00100','00100','00100','00100','00100','00100'],
+      'U': ['10001','10001','10001','10001','10001','10001','01110'],
+      'V': ['10001','10001','10001','10001','10001','01010','00100'],
+      'W': ['10001','10001','10001','10101','10101','10101','01010'],
+      'X': ['10001','01010','00100','00100','00100','01010','10001'],
+      'Y': ['10001','01010','00100','00100','00100','00100','00100'],
+      'Z': ['11111','00001','00010','00100','01000','10000','11111'],
+      '0': ['01110','10001','10011','10101','11001','10001','01110'],
+      '1': ['00100','01100','00100','00100','00100','00100','01110'],
+      '2': ['01110','10001','00001','00010','00100','01000','11111'],
+      '3': ['11110','00001','00001','01110','00001','00001','11110'],
+      '4': ['00010','00110','01010','10010','11111','00010','00010'],
+      '5': ['11111','10000','10000','11110','00001','00001','11110'],
+      '6': ['01110','10000','10000','11110','10001','10001','01110'],
+      '7': ['11111','00001','00010','00100','01000','01000','01000'],
+      '8': ['01110','10001','10001','01110','10001','10001','01110'],
+      '9': ['01110','10001','10001','01111','00001','00001','01110'],
+      ' ': ['00000','00000','00000','00000','00000','00000','00000'],
+      '!': ['00100','00100','00100','00100','00100','00000','00100'],
+      '?': ['01110','10001','00001','00010','00100','00000','00100'],
+      '.': ['00000','00000','00000','00000','00000','00000','00100'],
+      ',': ['00000','00000','00000','00000','00000','00100','01000'],
+      ':': ['00000','00100','00100','00000','00100','00100','00000'],
+      '-': ['00000','00000','00000','11111','00000','00000','00000'],
+      '+': ['00000','00100','00100','11111','00100','00100','00000'],
+      '/': ['00001','00010','00100','01000','10000','00000','00000'],
+      '&': ['01100','10010','10100','01000','10101','10010','01101'],
+      '*': ['00000','10101','01110','11111','01110','10101','00000'],
+      '?default': ['11111','00001','00010','00100','00100','00000','00100']
+    };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function indexOf(x, y) {
+      return y * state.cols + x;
+    }
+
+    function inBounds(x, y) {
+      return x >= 0 && x < state.cols && y >= 0 && y < state.rows;
+    }
+
+    function makeBlankPixels() {
+      state.pixels = new Array(state.cols * state.rows).fill(null);
+    }
+
+    function makeBlankTextLayer() {
+      state.liveTextPixels = new Array(state.cols * state.rows).fill(null);
+    }
+
+    function setPixel(x, y, color) {
+      if (!inBounds(x, y)) return;
+      state.pixels[indexOf(x, y)] = color;
+    }
+
+    function setLiveTextPixel(x, y, color) {
+      if (!inBounds(x, y)) return;
+      state.liveTextPixels[indexOf(x, y)] = color;
+    }
+
+    function getPixel(x, y) {
+      if (!inBounds(x, y)) return null;
+      return state.pixels[indexOf(x, y)];
+    }
+
+    function getLiveTextPixel(x, y) {
+      if (!inBounds(x, y)) return null;
+      return state.liveTextPixels[indexOf(x, y)];
+    }
+
+    function getVisiblePixel(x, y) {
+      return getPixel(x, y) || getLiveTextPixel(x, y) || null;
+    }
+
+    function hasAnyPixel() {
+      return state.pixels.some(Boolean) || state.liveTextPixels.some(Boolean);
+    }
+
+    function getNumberInput(el, fallback, min, max) {
+      const parsed = parseInt(el.value, 10);
+      const value = Number.isFinite(parsed) ? parsed : fallback;
+      return clamp(value, min, max);
+    }
+
+    function getIntRaw(el, fallback = 0) {
+      const parsed = parseInt(el.value, 10);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function splitTextLines(text) {
+      return (text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    }
+
+    function glyphFor(char) {
+      return FONT[char] || FONT['?default'];
+    }
+
+    function getPixelDensity() {
+      return clamp(getNumberInput(els.pixelDensity, 100, 50, 300), 50, 300) / 100;
+    }
+
+    function buildDensityGlyph(baseGlyph, density) {
+      const safeDensity = Math.max(0.5, Math.min(3, density || 1));
+      const sourceH = baseGlyph.length;
+      const sourceW = baseGlyph[0].length;
+      const targetW = Math.max(1, Math.round(sourceW * safeDensity));
+      const targetH = Math.max(1, Math.round(sourceH * safeDensity));
+      const rows = [];
+
+      for (let ty = 0; ty < targetH; ty++) {
+        let row = '';
+        for (let tx = 0; tx < targetW; tx++) {
+          const sx = Math.min(sourceW - 1, Math.max(0, Math.floor((tx + 0.5) / safeDensity)));
+          const sy = Math.min(sourceH - 1, Math.max(0, Math.floor((ty + 0.5) / safeDensity)));
+          row += baseGlyph[sy][sx] === '1' ? '1' : '0';
+        }
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function glyphForDensity(char, density) {
+      const base = glyphFor(char);
+      const safeDensity = Math.max(0.5, Math.min(3, density || 1));
+      const key = char + '|' + safeDensity.toFixed(2);
+      if (glyphCache.has(key)) return glyphCache.get(key);
+      const g = safeDensity === 1 ? base : buildDensityGlyph(base, safeDensity);
+      glyphCache.set(key, g);
+      return g;
+    }
+
+    function measureTextCells(text, scale, lineGapCells, density = 1) {
+      const safeScale = clamp(parseInt(scale, 10) || 1, 1, 20);
+      const safeDensity = Math.max(0.5, Math.min(3, density || 1));
+      const normalized = (text || '').toUpperCase();
+      const lines = splitTextLines(normalized);
+
+      if (!normalized.length) {
+        return { width: 0, height: 0, lineCount: 0, glyphHeight: 0 };
+      }
+
+      let maxWidth = 0;
+      let maxGlyphHeight = 0;
+      const gapUnits = Math.max(1, Math.round(safeDensity));
+      for (const line of lines) {
+        let width = 0;
+        for (const char of line) {
+          const glyph = glyphForDensity(char, safeDensity);
+          maxGlyphHeight = Math.max(maxGlyphHeight, glyph.length);
+          width += (glyph[0].length + gapUnits) * safeScale;
+        }
+        if (line.length > 0) width = Math.max(0, width - gapUnits * safeScale);
+        maxWidth = Math.max(maxWidth, width);
+      }
+
+      const glyphHeight = Math.max(1, maxGlyphHeight || Math.round(FONT_HEIGHT * safeDensity));
+      const height = (lines.length * glyphHeight * safeScale) + Math.max(0, lines.length - 1) * lineGapCells;
+      return { width: maxWidth, height, lineCount: lines.length, glyphHeight };
+    }
+    function measureLineWidth(line, scale, density = 1) {
+      const safeScale = clamp(parseInt(scale, 10) || 1, 1, 20);
+      const safeDensity = Math.max(0.5, Math.min(3, density || 1));
+      const gapUnits = Math.max(1, Math.round(safeDensity));
+      let width = 0;
+      for (const char of (line || '')) {
+        const glyph = glyphForDensity(char, safeDensity);
+        width += (glyph[0].length + gapUnits) * safeScale;
+      }
+      if ((line || '').length > 0) width = Math.max(0, width - gapUnits * safeScale);
+      return width;
+    }
+
+
+    function getTextFitSize() {
+      const text = els.textValue.value || '';
+      if (!text.length) return null;
+
+      const scale = getNumberInput(els.textScale, 1, 1, 12);
+      const density = getPixelDensity();
+      const padding = getNumberInput(els.textPadding, 1, 0, 100);
+      const lineGapCells = getNumberInput(els.lineGap, 2, 0, 80);
+      const measured = measureTextCells(text, scale, lineGapCells, density);
+      const offsetX = Math.max(0, getIntRaw(els.textX, 0));
+      const offsetY = Math.max(0, getIntRaw(els.textY, 0));
+      const align = els.textAlign.value;
+      const alignExtra = align === 'left' ? 0 : padding * 2;
+
+      const cols = clamp(Math.ceil(measured.width + padding * 2 + alignExtra + offsetX), 1, 300);
+      const rows = clamp(Math.ceil(measured.height + padding * 2 + offsetY), 1, 200);
+      return { cols, rows, measured };
+    }
+
+    function computeTextStart(measured) {
+      const padding = getNumberInput(els.textPadding, 1, 0, 100);
+      const offsetX = getIntRaw(els.textX, 0);
+      const offsetY = getIntRaw(els.textY, 0);
+      const align = els.textAlign.value;
+
+      let x = padding + offsetX;
+      if (align === 'center') {
+        x = Math.floor((state.cols - measured.width) / 2) + offsetX;
+      } else if (align === 'right') {
+        x = state.cols - padding - measured.width - offsetX;
+      }
+      x = clamp(x, 0, Math.max(0, state.cols - measured.width));
+
+      let y = padding + offsetY;
+      y = clamp(y, 0, Math.max(0, state.rows - measured.height));
+
+      return { x, y };
+    }
+
+    function resizeGrid(newCols, newRows, newCell, preservePixels = true, rebuildText = true) {
+      const oldPixels = state.pixels.slice();
+      const oldCols = state.cols;
+      const oldRows = state.rows;
+
+      state.cols = clamp(parseInt(newCols, 10) || state.cols, 1, 300);
+      state.rows = clamp(parseInt(newRows, 10) || state.rows, 1, 200);
+      state.cell = clamp(parseInt(newCell, 10) || state.cell, 2, 60);
+
+      const next = new Array(state.cols * state.rows).fill(null);
+      if (preservePixels) {
+        for (let y = 0; y < Math.min(oldRows, state.rows); y++) {
+          for (let x = 0; x < Math.min(oldCols, state.cols); x++) {
+            next[y * state.cols + x] = oldPixels[y * oldCols + x];
+          }
+        }
+      }
+      state.pixels = next;
+      makeBlankTextLayer();
+
+      els.cols.value = state.cols;
+      els.rows.value = state.rows;
+      els.cellSize.value = state.cell;
+
+      resizeCanvas();
+      if (rebuildText) rebuildLiveTextLayer();
+      else render();
+    }
+
+    function createSnapshot() {
+      return {
+        cols: state.cols,
+        rows: state.rows,
+        cell: state.cell,
+        pixels: state.pixels.slice(),
+        bg: state.bg,
+        grid: state.grid,
+        showGrid: state.showGrid,
+        exportGap: els.exportGap.value,
+        exportScale: els.exportScale.value,
+        algodooPixelSize: els.algodooPixelSize.value,
+        algodooGap: els.algodooGap.value,
+        algodooOriginX: els.algodooOriginX.value,
+        algodooOriginY: els.algodooOriginY.value,
+        algodooObjectType: els.algodooObjectType.value,
+        algodooMode: els.algodooMode.value,
+        algodooMaterial: els.algodooMaterial.value,
+        algodooMaterialName: els.algodooMaterialName.value,
+        algodooAdvanced: getAlgodooAdvancedState(),
+        algodooFixed: els.algodooFixed.checked,
+        algodooCollide: els.algodooCollide.checked,
+        textValue: els.textValue.value,
+        textX: els.textX.value,
+        textY: els.textY.value,
+        textScale: els.textScale.value,
+        pixelDensity: els.pixelDensity.value,
+        textAlign: els.textAlign.value,
+        textPadding: els.textPadding.value,
+        lineGap: els.lineGap.value,
+        autoFitText: els.autoFitText.checked,
+        rainbowText: els.rainbowText.checked,
+        drawColor: els.drawColor.value
+      };
+    }
+
+    function snapshotsEqual(a, b) {
+      if (!a || !b) return false;
+      const sameMeta =
+        a.cols === b.cols &&
+        a.rows === b.rows &&
+        a.cell === b.cell &&
+        a.bg === b.bg &&
+        a.grid === b.grid &&
+        a.showGrid === b.showGrid &&
+        a.exportGap === b.exportGap &&
+        a.exportScale === b.exportScale &&
+        a.algodooPixelSize === b.algodooPixelSize &&
+        a.algodooGap === b.algodooGap &&
+        a.algodooOriginX === b.algodooOriginX &&
+        a.algodooOriginY === b.algodooOriginY &&
+        a.algodooObjectType === b.algodooObjectType &&
+        a.algodooMode === b.algodooMode &&
+        a.algodooMaterial === b.algodooMaterial &&
+        a.algodooMaterialName === b.algodooMaterialName &&
+        JSON.stringify(a.algodooAdvanced || {}) === JSON.stringify(b.algodooAdvanced || {}) &&
+        a.algodooFixed === b.algodooFixed &&
+        a.algodooCollide === b.algodooCollide &&
+        a.textValue === b.textValue &&
+        a.textX === b.textX &&
+        a.textY === b.textY &&
+        a.textScale === b.textScale &&
+        a.pixelDensity === b.pixelDensity &&
+        a.textAlign === b.textAlign &&
+        a.textPadding === b.textPadding &&
+        a.lineGap === b.lineGap &&
+        a.autoFitText === b.autoFitText &&
+        a.rainbowText === b.rainbowText &&
+        a.drawColor === b.drawColor &&
+        a.pixels.length === b.pixels.length;
+
+      if (!sameMeta) return false;
+      for (let i = 0; i < a.pixels.length; i++) {
+        if (a.pixels[i] !== b.pixels[i]) return false;
+      }
+      return true;
+    }
+
+    function updateHistoryButtons() {
+      els.undo.disabled = state.historyIndex <= 0;
+      els.redo.disabled = state.historyIndex >= state.history.length - 1;
+    }
+
+    function pushHistory() {
+      const snap = createSnapshot();
+      const current = state.history[state.historyIndex];
+      if (snapshotsEqual(current, snap)) {
+        updateHistoryButtons();
+        return;
+      }
+
+      state.history = state.history.slice(0, state.historyIndex + 1);
+      state.history.push(snap);
+
+      if (state.history.length > state.historyLimit) {
+        const overflow = state.history.length - state.historyLimit;
+        state.history.splice(0, overflow);
+      }
+
+      state.historyIndex = state.history.length - 1;
+      updateHistoryButtons();
+    }
+
+    function restoreSnapshot(snap) {
+      if (!snap) return;
+      state.cols = snap.cols;
+      state.rows = snap.rows;
+      state.cell = snap.cell;
+      state.pixels = snap.pixels.slice();
+      state.bg = snap.bg;
+      state.grid = snap.grid;
+      state.showGrid = snap.showGrid;
+      state.color = snap.drawColor;
+
+      els.cols.value = state.cols;
+      els.rows.value = state.rows;
+      els.cellSize.value = state.cell;
+      els.bgColor.value = state.bg;
+      els.gridColor.value = state.grid;
+      els.showGrid.checked = state.showGrid;
+      els.exportGap.value = snap.exportGap || '1';
+      els.exportScale.value = snap.exportScale || '4';
+      els.algodooPixelSize.value = snap.algodooPixelSize || '0.08';
+      els.algodooGap.value = snap.algodooGap || '0.01';
+      els.algodooOriginX.value = snap.algodooOriginX || '0';
+      els.algodooOriginY.value = snap.algodooOriginY || '0';
+      els.algodooObjectType.value = snap.algodooObjectType || 'box';
+      els.algodooMode.value = snap.algodooMode || 'pixel';
+      els.algodooMaterial.value = snap.algodooMaterial || 'default';
+      els.algodooMaterialName.value = snap.algodooMaterialName || '';
+      restoreAlgodooAdvancedState(snap.algodooAdvanced || {});
+      syncAlgodooObjectTypeUI();
+      els.algodooFixed.checked = snap.algodooFixed ?? true;
+      els.algodooCollide.checked = snap.algodooCollide ?? false;
+      els.drawColor.value = state.color;
+      els.textValue.value = snap.textValue;
+      els.textX.value = snap.textX;
+      els.textY.value = snap.textY;
+      els.textScale.value = snap.textScale;
+      els.pixelDensity.value = snap.pixelDensity || '100';
+      els.textAlign.value = snap.textAlign;
+      els.textPadding.value = snap.textPadding;
+      els.lineGap.value = snap.lineGap;
+      els.autoFitText.checked = snap.autoFitText;
+      els.rainbowText.checked = snap.rainbowText;
+
+      makeBlankTextLayer();
+      resizeCanvas();
+      rebuildLiveTextLayer();
+      updateHistoryButtons();
+    }
+
+    function undo() {
+      if (state.historyIndex <= 0) return;
+      state.historyIndex -= 1;
+      restoreSnapshot(state.history[state.historyIndex]);
+    }
+
+    function redo() {
+      if (state.historyIndex >= state.history.length - 1) return;
+      state.historyIndex += 1;
+      restoreSnapshot(state.history[state.historyIndex]);
+    }
+
+    function scheduleTextHistory() {
+      clearTimeout(state.textHistoryTimer);
+      state.textHistoryTimer = setTimeout(() => pushHistory(), 250);
+    }
+
+    function applyPreviewZoom() {
+      const percent = Math.round(state.viewZoom * 100);
+      canvas.style.width = Math.max(1, Math.round(canvas.width * state.viewZoom)) + 'px';
+      canvas.style.height = Math.max(1, Math.round(canvas.height * state.viewZoom)) + 'px';
+      els.previewZoom.value = percent;
+      els.previewZoomValue.textContent = percent + '%';
+      const exportScale = els.exportScale ? getNumberInput(els.exportScale, 4, 1, 10) : 1;
+      const exportW = canvas.width * exportScale;
+      const exportH = canvas.height * exportScale;
+      els.stats.textContent = state.cols + ' x ' + state.rows + ' cells | editor ' + canvas.width + ' x ' + canvas.height + ' px | export ' + exportW + ' x ' + exportH + ' px | preview ' + percent + '%';
+    }
+
+    function setPreviewZoom(percent) {
+      const safePercent = clamp(parseInt(percent, 10) || 100, 10, 300);
+      state.viewZoom = safePercent / 100;
+      applyPreviewZoom();
+    }
+
+    function fitPreviewToWidth() {
+      const availableWidth = Math.max(120, els.stageWrap.clientWidth - 36);
+      const percent = clamp(Math.floor((availableWidth / canvas.width) * 100), 10, 300);
+      setPreviewZoom(percent);
+    }
+
+    function resizeCanvas() {
+      canvas.width = state.cols * state.cell;
+      canvas.height = state.rows * state.cell;
+      applyPreviewZoom();
+    }
+
+    function getEditorObjectShape(options = {}) {
+      if (options.objectShape) return options.objectShape;
+      return els.algodooObjectType && els.algodooObjectType.value === 'circle' ? 'circle' : 'box';
+    }
+
+    function drawPixelLayer(targetCtx, layer, pixelGap = 0, objectShape = 'box') {
+      const safeGap = clamp(parseInt(pixelGap, 10) || 0, 0, Math.max(0, state.cell - 1));
+      const insetA = Math.floor(safeGap / 2);
+      const insetB = Math.ceil(safeGap / 2);
+      const drawSize = Math.max(1, state.cell - insetA - insetB);
+      const radius = drawSize / 2;
+
+      for (let y = 0; y < state.rows; y++) {
+        for (let x = 0; x < state.cols; x++) {
+          const color = layer[indexOf(x, y)];
+          if (!color) continue;
+          targetCtx.fillStyle = color;
+          const px = x * state.cell + insetA;
+          const py = y * state.cell + insetA;
+          if (objectShape === 'circle') {
+            targetCtx.beginPath();
+            targetCtx.arc(px + radius, py + radius, radius, 0, Math.PI * 2);
+            targetCtx.fill();
+          } else {
+            targetCtx.fillRect(px, py, drawSize, drawSize);
+          }
+        }
+      }
+    }
+
+    function render(targetCtx = ctx, options = {}) {
+      const includeGrid = options.includeGrid ?? state.showGrid;
+      const transparentBg = options.transparentBg ?? false;
+      const pixelGap = options.pixelGap ?? 0;
+      const objectShape = getEditorObjectShape(options);
+      const c = targetCtx.canvas;
+      targetCtx.clearRect(0, 0, c.width, c.height);
+
+      if (!transparentBg) {
+        targetCtx.fillStyle = state.bg;
+        targetCtx.fillRect(0, 0, c.width, c.height);
+      }
+
+      drawPixelLayer(targetCtx, state.liveTextPixels, pixelGap, objectShape);
+      drawPixelLayer(targetCtx, state.pixels, pixelGap, objectShape);
+
+      if (includeGrid) drawGrid(targetCtx);
+    }
+
+    function drawGrid(targetCtx) {
+      targetCtx.save();
+      targetCtx.strokeStyle = state.grid;
+      targetCtx.lineWidth = 1;
+      targetCtx.beginPath();
+      for (let x = 0; x <= state.cols; x++) {
+        const px = x * state.cell + 0.5;
+        targetCtx.moveTo(px, 0);
+        targetCtx.lineTo(px, state.rows * state.cell);
+      }
+      for (let y = 0; y <= state.rows; y++) {
+        const py = y * state.cell + 0.5;
+        targetCtx.moveTo(0, py);
+        targetCtx.lineTo(state.cols * state.cell, py);
+      }
+      targetCtx.stroke();
+      targetCtx.restore();
+    }
+
+    function cellFromEvent(event) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = Math.floor(((event.clientX - rect.left) * scaleX) / state.cell);
+      const y = Math.floor(((event.clientY - rect.top) * scaleY) / state.cell);
+      return { x, y };
+    }
+
+    function floodFill(startX, startY, replacement) {
+      if (!inBounds(startX, startY)) return;
+      const target = getVisiblePixel(startX, startY);
+      if (target === replacement) return;
+
+      const stack = [[startX, startY]];
+      while (stack.length) {
+        const [x, y] = stack.pop();
+        if (!inBounds(x, y)) continue;
+        if (getVisiblePixel(x, y) !== target) continue;
+        setPixel(x, y, replacement);
+        stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+      }
+    }
+
+    function paintAt(x, y, firstClick = false) {
+      if (!inBounds(x, y)) return;
+
+      if (state.tool === 'draw') {
+        setPixel(x, y, state.color);
+        render();
+      }
+
+      if (state.tool === 'erase') {
+        setPixel(x, y, null);
+        render();
+      }
+
+      if (state.tool === 'fill' && firstClick) {
+        floodFill(x, y, state.color);
+        render();
+      }
+
+      if (state.tool === 'picker' && firstClick) {
+        const sampled = getVisiblePixel(x, y) || state.bg;
+        state.color = sampled;
+        els.drawColor.value = sampled;
+        setTool('draw');
+      }
+    }
+
+    function setTool(tool) {
+      state.tool = tool;
+      document.querySelectorAll('.tool').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tool === tool);
+      });
+    }
+
+    function applySize() {
+      const nextCols = getNumberInput(els.cols, 80, 1, 300);
+      const nextRows = getNumberInput(els.rows, 32, 1, 200);
+      const nextCell = getNumberInput(els.cellSize, 14, 2, 60);
+      resizeGrid(nextCols, nextRows, nextCell, true, true);
+      pushHistory();
+    }
+
+    function drawTextToLiveLayer(text, startX, startY, scale, color, rainbow, lineGapCells = 0, density = 1) {
+      const safeScale = clamp(parseInt(scale, 10) || 1, 1, 20);
+      const safeDensity = Math.max(0.5, Math.min(3, density || 1));
+      const normalizedLines = splitTextLines((text || '').toUpperCase());
+      const measuredBlock = measureTextCells(text, safeScale, lineGapCells, safeDensity);
+      const blockWidth = measuredBlock.width;
+      const glyphHeight = measuredBlock.glyphHeight || Math.round(FONT_HEIGHT * safeDensity);
+      const align = els.textAlign.value;
+      const gapUnits = Math.max(1, Math.round(safeDensity));
+
+      normalizedLines.forEach((line, lineIndex) => {
+        const lineWidth = measureLineWidth(line, safeScale, safeDensity);
+        let cursor = 0;
+        let lineStartX = startX;
+        if (align === 'center') {
+          lineStartX = startX + Math.floor((blockWidth - lineWidth) / 2);
+        } else if (align === 'right') {
+          lineStartX = startX + (blockWidth - lineWidth);
+        }
+
+        const lineY = startY + lineIndex * (glyphHeight * safeScale + lineGapCells);
+
+        for (const char of line) {
+          const glyph = glyphForDensity(char, safeDensity);
+          const glyphWidth = glyph[0].length;
+
+          for (let gy = 0; gy < glyph.length; gy++) {
+            for (let gx = 0; gx < glyphWidth; gx++) {
+              if (glyph[gy][gx] !== '1') continue;
+
+              for (let sy = 0; sy < safeScale; sy++) {
+                for (let sx = 0; sx < safeScale; sx++) {
+                  const px = lineStartX + cursor + gx * safeScale + sx;
+                  const py = lineY + gy * safeScale + sy;
+                  const stripe = Math.floor(((gy * safeScale + sy) / Math.max(1, glyph.length * safeScale)) * RAINBOW.length);
+                  setLiveTextPixel(px, py, rainbow ? RAINBOW[stripe] : color);
+                }
+              }
+            }
+          }
+          cursor += (glyphWidth + gapUnits) * safeScale;
+        }
+      });
+    }
+
+    function rebuildLiveTextLayer() {
+      makeBlankTextLayer();
+      const text = els.textValue.value || '';
+      if (!text.length) {
+        render();
+        return;
+      }
+
+      const scale = getNumberInput(els.textScale, 1, 1, 12);
+      const density = getPixelDensity();
+      const lineGapCells = getNumberInput(els.lineGap, 2, 0, 80);
+      const measured = measureTextCells(text, scale, lineGapCells, density);
+      const start = computeTextStart(measured);
+      drawTextToLiveLayer(text, start.x, start.y, scale, state.color, els.rainbowText.checked, lineGapCells, density);
+      render();
+    }
+
+    function updateLiveTextRealtime(recordHistory = true) {
+      if (els.autoFitText.checked && (els.textValue.value || '').length) {
+        const fit = getTextFitSize();
+        if (fit) {
+          els.cols.value = fit.cols;
+          els.rows.value = fit.rows;
+          if (fit.cols !== state.cols || fit.rows !== state.rows) {
+            resizeGrid(fit.cols, fit.rows, state.cell, true, false);
+          }
+        }
+      }
+      rebuildLiveTextLayer();
+      if (recordHistory) scheduleTextHistory();
+    }
+
+    function fitTextNow() {
+      const fit = getTextFitSize();
+      if (!fit) return;
+      els.cols.value = fit.cols;
+      els.rows.value = fit.rows;
+      resizeGrid(fit.cols, fit.rows, state.cell, true, false);
+      rebuildLiveTextLayer();
+      pushHistory();
+    }
+
+    function bakeTextToPixels() {
+      if (!state.liveTextPixels.some(Boolean)) return;
+      for (let i = 0; i < state.liveTextPixels.length; i++) {
+        if (state.liveTextPixels[i]) state.pixels[i] = state.liveTextPixels[i];
+      }
+      els.textValue.value = '';
+      makeBlankTextLayer();
+      render();
+      pushHistory();
+    }
+
+    function makeSample() {
+      state.cell = 8;
+      els.cellSize.value = state.cell;
+      els.drawColor.value = '#ff00ff';
+      state.color = '#ff00ff';
+      els.textScale.value = '2';
+      els.pixelDensity.value = '100';
+      els.textPadding.value = '1';
+      els.lineGap.value = '2';
+      els.textX.value = '0';
+      els.textY.value = '0';
+      els.textAlign.value = 'left';
+      els.autoFitText.checked = true;
+      els.rainbowText.checked = true;
+      els.algodooObjectType.value = 'box';
+      syncAlgodooObjectTypeUI();
+      els.textValue.value = '100 COUNTRIES\nRILEY MARBLES';
+      makeBlankPixels();
+      updateLiveTextRealtime(false);
+      pushHistory();
+    }
+
+    function clearAll() {
+      makeBlankPixels();
+      els.textValue.value = '';
+      makeBlankTextLayer();
+      render();
+      pushHistory();
+    }
+
+    function visibleColorAtIndex(i) {
+      return state.pixels[i] || state.liveTextPixels[i] || null;
+    }
+
+    function collectVisibleRuns(mode = 'pixel') {
+      const runs = [];
+      for (let y = 0; y < state.rows; y++) {
+        let x = 0;
+        while (x < state.cols) {
+          const color = visibleColorAtIndex(indexOf(x, y));
+          if (!color) {
+            x += 1;
+            continue;
+          }
+
+          if (mode === 'merge') {
+            let len = 1;
+            while (x + len < state.cols && visibleColorAtIndex(indexOf(x + len, y)) === color) {
+              len += 1;
+            }
+            runs.push({ x, y, len, color });
+            x += len;
+          } else {
+            runs.push({ x, y, len: 1, color });
+            x += 1;
+          }
+        }
+      }
+      return runs;
+    }
+
+    function hexToAlgodooColor(hex) {
+      const clean = (hex || '#000000').replace('#', '').trim();
+      const normalized = clean.length === 3
+        ? clean.split('').map(ch => ch + ch).join('')
+        : clean.padEnd(6, '0').slice(0, 6);
+      const r = parseInt(normalized.slice(0, 2), 16) / 255;
+      const g = parseInt(normalized.slice(2, 4), 16) / 255;
+      const b = parseInt(normalized.slice(4, 6), 16) / 255;
+      const fmt = n => (Number.isFinite(n) ? n : 0).toFixed(6);
+      return '[' + fmt(r) + ', ' + fmt(g) + ', ' + fmt(b) + ', 1.000000]';
+    }
+
+    function fmtAlgodooNumber(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return '0.000000';
+      return n.toFixed(6);
+    }
+
+    function boolAlgodoo(value) {
+      return value ? 'true' : 'false';
+    }
+
+    function getAlgodooFloat(el, fallback, min = -999999, max = 999999) {
+      const n = parseFloat(el.value);
+      const value = Number.isFinite(n) ? n : fallback;
+      return clamp(value, min, max);
+    }
+
+    function getAlgodooInt(el, fallback, min = -999999, max = 999999) {
+      const n = parseInt(el.value, 10);
+      const value = Number.isFinite(n) ? n : fallback;
+      return clamp(value, min, max);
+    }
+
+    function quoteAlgodooString(value) {
+      return '"' + String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+    }
+
+    function getAlgodooMaterialName() {
+      return (els.algodooMaterialName && els.algodooMaterialName.value.trim()) || '';
+    }
+
+    function getExtraAlgodooScriptLines() {
+      return (els.algodooExtraScript.value || '')
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('//'))
+        .map(line => line.endsWith(';') ? line : line + ';');
+    }
+
+    function getAlgodooAdvancedState() {
+      const values = {};
+      document.querySelectorAll('[data-algodoo-field]').forEach(el => {
+        values[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+      });
+      return values;
+    }
+
+    function restoreAlgodooAdvancedState(values = {}) {
+      document.querySelectorAll('[data-algodoo-field]').forEach(el => {
+        if (!(el.id in values)) return;
+        if (el.type === 'checkbox') el.checked = !!values[el.id];
+        else el.value = values[el.id];
+      });
+    }
+
+    function getAdvancedEl(id) {
+      return document.getElementById(id);
+    }
+
+    function getAdvancedValue(id, fallback = '') {
+      const el = getAdvancedEl(id);
+      if (!el) return fallback;
+      return el.value;
+    }
+
+    function getAdvancedChecked(id, fallback = false) {
+      const el = getAdvancedEl(id);
+      if (!el) return fallback;
+      return !!el.checked;
+    }
+
+    function advancedNumber(id, fallback, min = -999999, max = 999999) {
+      const n = parseFloat(getAdvancedValue(id, fallback));
+      const value = Number.isFinite(n) ? n : fallback;
+      return clamp(value, min, max);
+    }
+
+    function advancedInt(id, fallback, min = -999999, max = 999999) {
+      const n = parseInt(getAdvancedValue(id, fallback), 10);
+      const value = Number.isFinite(n) ? n : fallback;
+      return clamp(value, min, max);
+    }
+
+    function pushRawProp(lines, name, value) {
+      const trimmed = String(value ?? '').trim();
+      if (!trimmed) return;
+      lines.push('    ' + name + ' := ' + trimmed + ';');
+    }
+
+    function pushStringProp(lines, name, value) {
+      const trimmed = String(value ?? '').trim();
+      if (!trimmed) return;
+      lines.push('    ' + name + ' := ' + quoteAlgodooString(trimmed) + ';');
+    }
+
+    function pushBoolProp(lines, name, value) {
+      lines.push('    ' + name + ' := ' + boolAlgodoo(!!value) + ';');
+    }
+
+    function pushCommonAlgodooProperties(lines, run, i, collideSet, fixed, objectType) {
+      const baseZ = getAlgodooFloat(els.algodooZDepth, 5, -999999, 999999);
+      const zDepth = baseZ + (i % 1000) * 0.000001;
+      const materialName = getAlgodooMaterialName();
+      const bodyValue = getAdvancedValue('algodooBody', '').trim();
+
+      lines.push('    color := ' + hexToAlgodooColor(run.color) + ';');
+      lines.push('    drawBorder := ' + boolAlgodoo(els.algodooDrawBorder.checked) + ';');
+      lines.push('    edgeBlur := ' + fmtAlgodooNumber(getAlgodooFloat(els.algodooEdgeBlur, 0, 0, 20)) + ';');
+      lines.push('    collideSet := ' + collideSet + ';');
+      lines.push('    collideWater := ' + boolAlgodoo(els.algodooCollideWater.checked) + ';');
+      lines.push('    density := ' + fmtAlgodooNumber(getAlgodooFloat(els.algodooDensity, 1, 0.000001, 100000)) + ';');
+      lines.push('    friction := ' + fmtAlgodooNumber(getAlgodooFloat(els.algodooFriction, 0.5, 0, 100000)) + ';');
+      lines.push('    restitution := ' + fmtAlgodooNumber(getAlgodooFloat(els.algodooRestitution, 0, 0, 100000)) + ';');
+      lines.push('    attraction := ' + fmtAlgodooNumber(getAlgodooFloat(els.algodooAttraction, 0, -100000, 100000)) + ';');
+      lines.push('    adhesion := ' + fmtAlgodooNumber(getAlgodooFloat(els.algodooAdhesion, 0, -100000, 100000)) + ';');
+      lines.push('    layer := ' + getAlgodooInt(els.algodooLayer, 0, -100000, 100000) + ';');
+
+      if (materialName) lines.push('    materialName := ' + quoteAlgodooString(materialName) + ';');
+
+      lines.push('    airFrictionMult := ' + fmtAlgodooNumber(advancedNumber('algodooAirFrictionMult', 1, -100000, 100000)) + ';');
+      lines.push('    angle := ' + fmtAlgodooNumber(advancedNumber('algodooAngle', 0, -100000, 100000)) + ';');
+      lines.push('    angvel := ' + fmtAlgodooNumber(advancedNumber('algodooAngvel', 0, -100000, 100000)) + ';');
+      lines.push('    attractionType := ' + advancedInt('algodooAttractionType', 2, -100000, 100000) + ';');
+      lines.push('    heteroCollide := ' + boolAlgodoo(getAdvancedChecked('algodooHeteroCollide', false)) + ';');
+      lines.push('    inertiaMultiplier := ' + fmtAlgodooNumber(advancedNumber('algodooInertiaMultiplier', 1, -100000, 100000)) + ';');
+      pushRawProp(lines, 'materialVelocity', getAdvancedValue('algodooMaterialVelocity', '[0, 0]'));
+      pushRawProp(lines, 'vel', getAdvancedValue('algodooVel', '[0, 0]'));
+      pushRawProp(lines, 'velocityDamping', getAdvancedValue('algodooVelocityDamping', '[0, 0, 0]'));
+      pushRawProp(lines, 'timeToLive', getAdvancedValue('algodooTimeToLive', ''));
+
+      lines.push('    glued := ' + boolAlgodoo(fixed) + ';');
+      if (fixed) {
+        lines.push('    body := ' + (bodyValue || '0') + ';');
+      } else if (bodyValue) {
+        lines.push('    body := ' + bodyValue + ';');
+      }
+
+      lines.push('    killer := ' + boolAlgodoo(els.algodooKiller.checked) + ';');
+      lines.push('    immortal := ' + boolAlgodoo(els.algodooImmortal.checked) + ';');
+      lines.push('    ruler := ' + boolAlgodoo(els.algodooRuler.checked) + ';');
+      lines.push('    showForceArrows := ' + boolAlgodoo(els.algodooShowForceArrows.checked) + ';');
+      lines.push('    showMomentum := ' + boolAlgodoo(els.algodooShowMomentum.checked) + ';');
+      lines.push('    showVelocity := ' + boolAlgodoo(els.algodooShowVelocity.checked) + ';');
+
+      lines.push('    controllerAcc := ' + fmtAlgodooNumber(advancedNumber('algodooControllerAcc', 11, -100000, 100000)) + ';');
+      lines.push('    controllerInvertX := ' + boolAlgodoo(getAdvancedChecked('algodooControllerInvertX', false)) + ';');
+      lines.push('    controllerInvertY := ' + boolAlgodoo(getAdvancedChecked('algodooControllerInvertY', false)) + ';');
+      lines.push('    controllerReverseXY := ' + boolAlgodoo(getAdvancedChecked('algodooControllerReverseXY', false)) + ';');
+
+      lines.push('    opaqueBorders := ' + boolAlgodoo(getAdvancedChecked('algodooOpaqueBorders', true)) + ';');
+      if (objectType === 'circle') {
+        lines.push('    drawCake := ' + boolAlgodoo(getAdvancedChecked('algodooDrawCake', false)) + ';');
+      }
+      lines.push('    protractor := ' + boolAlgodoo(getAdvancedChecked('algodooProtractor', false)) + ';');
+      lines.push('    reflectiveness := ' + fmtAlgodooNumber(advancedNumber('algodooReflectiveness', 1, -100000, 100000)) + ';');
+      lines.push('    refractiveIndex := ' + fmtAlgodooNumber(advancedNumber('algodooRefractiveIndex', 1.5, -100000, 100000)) + ';');
+      pushStringProp(lines, 'texture', getAdvancedValue('algodooTexture', ''));
+      pushRawProp(lines, 'textureClamped', getAdvancedValue('algodooTextureClamped', '[false, false]'));
+      pushRawProp(lines, 'textureMatrix', getAdvancedValue('algodooTextureMatrix', '[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]'));
+      pushRawProp(lines, 'resources', getAdvancedValue('algodooResources', '[]'));
+
+      pushStringProp(lines, 'text', getAdvancedValue('algodooText', ''));
+      pushRawProp(lines, 'textColor', getAdvancedValue('algodooTextColor', '[1, 1, 1, 1]'));
+      lines.push('    textConstrained := ' + boolAlgodoo(getAdvancedChecked('algodooTextConstrained', true)) + ';');
+      pushStringProp(lines, 'textFont', getAdvancedValue('algodooTextFont', 'Verdana'));
+      lines.push('    textFontSize := ' + fmtAlgodooNumber(advancedNumber('algodooTextFontSize', 32, 0, 100000)) + ';');
+      lines.push('    textScale := ' + fmtAlgodooNumber(advancedNumber('algodooTextScale', 0.1, -100000, 100000)) + ';');
+
+      pushRawProp(lines, 'onClick', getAdvancedValue('algodooOnClick', '(e)=>{}'));
+      pushRawProp(lines, 'onCollide', getAdvancedValue('algodooOnCollide', '(e)=>{}'));
+      pushRawProp(lines, 'onDie', getAdvancedValue('algodooOnDie', '(e)=>{}'));
+      pushRawProp(lines, 'onHitByLaser', getAdvancedValue('algodooOnHitByLaser', '(e)=>{}'));
+      pushRawProp(lines, 'onKey', getAdvancedValue('algodooOnKey', '(e)=>{}'));
+      pushRawProp(lines, 'onSpawn', getAdvancedValue('algodooOnSpawn', '(e)=>{}'));
+      pushRawProp(lines, 'postStep', getAdvancedValue('algodooPostStep', '(e)=>{}'));
+      pushRawProp(lines, 'update', getAdvancedValue('algodooUpdate', '(e)=>{}'));
+
+      lines.push('    _pixelX := ' + run.x + ';');
+      lines.push('    _pixelY := ' + run.y + ';');
+      lines.push('    zDepth := ' + fmtAlgodooNumber(zDepth) + ';');
+
+      for (const extraLine of getExtraAlgodooScriptLines()) {
+        lines.push('    ' + extraLine);
+      }
+    }
+
+    function applyAlgodooMaterialPreset() {
+      const preset = ALGODOO_MATERIALS[els.algodooMaterial.value] || ALGODOO_MATERIALS.default;
+      els.algodooDensity.value = Number(preset.density).toFixed(2);
+      els.algodooFriction.value = Number(preset.friction).toFixed(2);
+      els.algodooRestitution.value = Number(preset.restitution).toFixed(2);
+      els.algodooAttraction.value = Number(preset.attraction).toFixed(2);
+      els.algodooAdhesion.value = Number(preset.adhesion).toFixed(2);
+      els.algodooMaterialName.value = preset.name || '';
+    }
+
+    function markAlgodooMaterialCustom() {
+      if (els.algodooMaterial.value !== 'custom') {
+        els.algodooMaterial.value = 'custom';
+      }
+    }
+
+    function syncAlgodooObjectTypeUI() {
+      const mergeOption = els.algodooMode.querySelector('option[value="merge"]');
+      const isCircle = els.algodooObjectType.value === 'circle';
+      if (mergeOption) mergeOption.disabled = isCircle;
+      if (isCircle && els.algodooMode.value === 'merge') {
+        els.algodooMode.value = 'pixel';
+      }
+    }
+
+    function buildAlgodooPhn() {
+      syncAlgodooObjectTypeUI();
+
+      const objectType = els.algodooObjectType.value === 'circle' ? 'circle' : 'box';
+      let mode = els.algodooMode.value;
+      if (objectType === 'circle' && mode === 'merge') {
+        mode = 'pixel';
+      }
+
+      const runs = collectVisibleRuns(mode);
+      if (!runs.length) {
+        alert('Không có pixel nào để export sang Algodoo.');
+        return null;
+      }
+
+      if (mode === 'pixel' && runs.length > 8000) {
+        const ok = confirm(
+          'Bạn đang export ' + runs.length + ' object riêng lẻ. ' +
+          'Algodoo có thể rất lag hoặc load lâu. Bạn vẫn muốn export?'
+        );
+        if (!ok) return null;
+      }
+
+      const objectSize = clamp(parseFloat(els.algodooPixelSize.value) || 0.08, 0.005, 5);
+      const gap = clamp(parseFloat(els.algodooGap.value) || 0, 0, 5);
+      const step = objectSize + gap;
+      const originX = parseFloat(els.algodooOriginX.value) || 0;
+      const originY = parseFloat(els.algodooOriginY.value) || 0;
+      const fixed = els.algodooFixed.checked;
+      const collideSet = els.algodooCollide.checked ? advancedInt('algodooCollideSet', 1023, 0, 65535) : 0;
+
+      const lines = [
+        '// FileVersion 21',
+        '// Phunlet created by Pixel Text Editor v11',
+        '// Object type: ' + objectType,
+        '// Export mode: ' + mode,
+        '',
+        'FileInfo -> {',
+        '    author = "Pixel Text Editor";',
+        '    version = 21',
+        '};',
+        ''
+      ];
+
+      const totalWidth = state.cols * step;
+      const totalHeight = state.rows * step;
+      lines.push('Scene.camera.pan = [' + fmtAlgodooNumber(originX + totalWidth / 2) + ', ' + fmtAlgodooNumber(originY - totalHeight / 2) + '];');
+      lines.push('Scene.camera.zoom = ' + fmtAlgodooNumber(Math.max(10, 120 / Math.max(1, Math.max(totalWidth, totalHeight)))) + ';');
+      lines.push('');
+
+      runs.forEach((run, i) => {
+        const w = run.len * objectSize + Math.max(0, run.len - 1) * gap;
+        const h = objectSize;
+        const cx = originX + run.x * step + w / 2;
+        const cy = originY - run.y * step - h / 2;
+
+        if (objectType === 'circle') {
+          const radius = objectSize / 2;
+          const circleCx = originX + run.x * step + radius;
+          const circleCy = originY - run.y * step - radius;
+
+          lines.push('Scene.addCircle {');
+          lines.push('    pos := [' + fmtAlgodooNumber(circleCx) + ', ' + fmtAlgodooNumber(circleCy) + '];');
+          lines.push('    radius := ' + fmtAlgodooNumber(radius) + ';');
+          pushCommonAlgodooProperties(lines, run, i, collideSet, fixed, objectType);
+          lines.push('};');
+        } else {
+          lines.push('Scene.addBox {');
+          lines.push('    pos := [' + fmtAlgodooNumber(cx) + ', ' + fmtAlgodooNumber(cy) + '];');
+          lines.push('    size := [' + fmtAlgodooNumber(w) + ', ' + fmtAlgodooNumber(h) + '];');
+          pushCommonAlgodooProperties(lines, run, i, collideSet, fixed, objectType);
+          lines.push('};');
+        }
+      });
+
+      return { text: lines.join('\n'), count: runs.length, objectType, mode };
+    }
+
+    function exportAlgodooPhn() {
+      const result = buildAlgodooPhn();
+      if (!result) return;
+
+      const blob = new Blob([result.text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'pixel-art-algodoo-' + result.objectType + '-' + result.mode + '-' + result.count + '.phn';
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }
+
+    function renderExportPng(targetCtx, exportScale, exportGap) {
+      const safeScale = clamp(parseInt(exportScale, 10) || 1, 1, 10);
+      const exportCell = state.cell * safeScale;
+      const safeGap = clamp(Math.round((parseInt(exportGap, 10) || 0) * safeScale), 0, Math.max(0, exportCell - 1));
+      const insetA = Math.floor(safeGap / 2);
+      const insetB = Math.ceil(safeGap / 2);
+      const drawSize = Math.max(1, exportCell - insetA - insetB);
+
+      targetCtx.clearRect(0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
+
+      const drawLayer = layer => {
+        for (let y = 0; y < state.rows; y++) {
+          for (let x = 0; x < state.cols; x++) {
+            const color = layer[indexOf(x, y)];
+            if (!color) continue;
+            targetCtx.fillStyle = color;
+            targetCtx.fillRect(x * exportCell + insetA, y * exportCell + insetA, drawSize, drawSize);
+          }
+        }
+      };
+
+      drawLayer(state.liveTextPixels);
+      drawLayer(state.pixels);
+    }
+
+    function exportPng() {
+      const exportScale = getNumberInput(els.exportScale, 4, 1, 10);
+      const exportGap = getNumberInput(els.exportGap, 1, 0, 20);
+      const output = document.createElement('canvas');
+      output.width = state.cols * state.cell * exportScale;
+      output.height = state.rows * state.cell * exportScale;
+
+      const maxCanvasSide = 16384;
+      if (output.width > maxCanvasSide || output.height > maxCanvasSide) {
+        alert('Export is too large for the browser. Reduce Algodoo export scale, Cell px, Columns, or Rows.');
+        return;
+      }
+
+      const outputCtx = output.getContext('2d');
+      renderExportPng(outputCtx, exportScale, exportGap);
+
+      const a = document.createElement('a');
+      a.href = output.toDataURL('image/png');
+      a.download = 'pixel-art-algodoo-x' + exportScale + '.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    document.querySelectorAll('.tool').forEach(btn => {
+      btn.addEventListener('click', () => setTool(btn.dataset.tool));
+    });
+
+    els.applySize.addEventListener('click', applySize);
+    els.drawColor.addEventListener('input', e => {
+      state.color = e.target.value;
+      rebuildLiveTextLayer();
+      scheduleTextHistory();
+    });
+    els.bgColor.addEventListener('input', e => { state.bg = e.target.value; render(); });
+    els.bgColor.addEventListener('change', pushHistory);
+    els.gridColor.addEventListener('input', e => { state.grid = e.target.value; render(); });
+    els.gridColor.addEventListener('change', pushHistory);
+    els.showGrid.addEventListener('change', e => { state.showGrid = e.target.checked; render(); pushHistory(); });
+    els.exportScale.addEventListener('input', () => { applyPreviewZoom(); });
+    els.exportScale.addEventListener('change', pushHistory);
+    els.exportGap.addEventListener('change', pushHistory);
+    els.previewZoom.addEventListener('input', e => setPreviewZoom(e.target.value));
+    els.fitPreview.addEventListener('click', fitPreviewToWidth);
+    els.resetPreview.addEventListener('click', () => setPreviewZoom(100));
+
+    [
+      els.textValue,
+      els.textScale,
+      els.pixelDensity,
+      els.textX,
+      els.textY,
+      els.textPadding,
+      els.lineGap,
+      els.textAlign
+    ].forEach(el => el.addEventListener('input', () => updateLiveTextRealtime(true)));
+
+    els.autoFitText.addEventListener('change', () => { updateLiveTextRealtime(true); });
+    els.rainbowText.addEventListener('change', () => { rebuildLiveTextLayer(); pushHistory(); });
+    els.bakeText.addEventListener('click', bakeTextToPixels);
+    els.fitText.addEventListener('click', fitTextNow);
+    els.sample.addEventListener('click', makeSample);
+    els.undo.addEventListener('click', undo);
+    els.redo.addEventListener('click', redo);
+    els.clear.addEventListener('click', clearAll);
+    els.exportPng.addEventListener('click', exportPng);
+    els.exportAlgodoo.addEventListener('click', exportAlgodooPhn);
+    els.algodooObjectType.addEventListener('change', () => { syncAlgodooObjectTypeUI(); render(); pushHistory(); });
+    els.algodooMaterial.addEventListener('change', () => { applyAlgodooMaterialPreset(); pushHistory(); });
+
+    [
+      els.algodooDensity,
+      els.algodooFriction,
+      els.algodooRestitution,
+      els.algodooAttraction,
+      els.algodooAdhesion,
+      els.algodooMaterialName
+    ].forEach(el => el.addEventListener('input', markAlgodooMaterialCustom));
+
+    [
+      els.algodooPixelSize,
+      els.algodooGap,
+      els.algodooOriginX,
+      els.algodooOriginY,
+      els.algodooMode,
+      els.algodooFixed,
+      els.algodooCollide,
+      els.algodooDrawBorder,
+      els.algodooKiller,
+      els.algodooImmortal,
+      els.algodooRuler,
+      els.algodooShowForceArrows,
+      els.algodooShowMomentum,
+      els.algodooShowVelocity,
+      els.algodooCollideWater,
+      els.algodooDensity,
+      els.algodooFriction,
+      els.algodooRestitution,
+      els.algodooAttraction,
+      els.algodooAdhesion,
+      els.algodooLayer,
+      els.algodooZDepth,
+      els.algodooEdgeBlur,
+      els.algodooExtraScript
+    ].forEach(el => el.addEventListener('change', pushHistory));
+
+    document.querySelectorAll('[data-algodoo-field]').forEach(el => {
+      el.addEventListener('change', pushHistory);
+    });
+
+    syncAlgodooObjectTypeUI();
+    render();
+
+    canvas.addEventListener('pointerdown', event => {
+      canvas.setPointerCapture(event.pointerId);
+      state.isDown = true;
+      const cell = cellFromEvent(event);
+      state.lastCellKey = cell.x + ',' + cell.y;
+      paintAt(cell.x, cell.y, true);
+    });
+
+    canvas.addEventListener('pointermove', event => {
+      if (!state.isDown) return;
+      const cell = cellFromEvent(event);
+      const key = cell.x + ',' + cell.y;
+      if (key === state.lastCellKey) return;
+      state.lastCellKey = key;
+      paintAt(cell.x, cell.y, false);
+    });
+
+    window.addEventListener('pointerup', () => {
+      if (state.isDown) pushHistory();
+      state.isDown = false;
+      state.lastCellKey = '';
+    });
+
+    document.addEventListener('keydown', event => {
+      const key = event.key.toLowerCase();
+      const isUndo = (event.ctrlKey || event.metaKey) && key === 'z' && !event.shiftKey;
+      const isRedo = (event.ctrlKey || event.metaKey) && (key === 'y' || (key === 'z' && event.shiftKey));
+
+      if (isUndo) {
+        event.preventDefault();
+        undo();
+      }
+      if (isRedo) {
+        event.preventDefault();
+        redo();
+      }
+    });
+
+    makeBlankPixels();
+    makeBlankTextLayer();
+    resizeCanvas();
+    render();
+    pushHistory();
+  </script>
+</body>
+</html>
