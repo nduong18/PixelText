@@ -927,6 +927,19 @@
             <input id="imageFile" type="file" accept="image/*" />
           </div>
         </div>
+        <div class="row two">
+          <div>
+            <label for="imageUrl">Image URL</label>
+            <input id="imageUrl" type="text" placeholder="https://example.com/image.png" />
+          </div>
+          <div>
+            <label for="loadImageUrl">Load URL</label>
+            <button id="loadImageUrl" type="button"><i class="fa-solid fa-link"></i><span>Load image URL</span></button>
+          </div>
+        </div>
+        <div class="row one">
+          <button id="pasteImageClipboard" type="button"><i class="fa-solid fa-clipboard"></i><span>Paste image from clipboard</span></button>
+        </div>
         <div class="row three">
           <div>
             <div class="range-head">
@@ -953,7 +966,7 @@
             </select>
           </div>
         </div>
-        <p class="hint">Upload an image and convert it into the current workspace resolution as a separate pixel layer.</p>
+        <p class="hint">Upload an image file or load an image URL, then convert it into the current workspace resolution as a separate pixel layer.</p>
       </div>
 
       <div class="group">
@@ -1052,7 +1065,7 @@
         </div>
         <div class="row three">
           <label class="checkbox-row">
-            <input id="algodooFixed" type="checkbox" checked />
+            <input id="algodooFixed" type="checkbox" />
             Glued
           </label>
           <label class="checkbox-row">
@@ -1374,6 +1387,9 @@
       rainbowText: document.getElementById('rainbowText'),
       sample: document.getElementById('sample'),
       imageFile: document.getElementById('imageFile'),
+      imageUrl: document.getElementById('imageUrl'),
+      loadImageUrl: document.getElementById('loadImageUrl'),
+      pasteImageClipboard: document.getElementById('pasteImageClipboard'),
       imagePixelSize: document.getElementById('imagePixelSize'),
       imagePixelSizeValue: document.getElementById('imagePixelSizeValue'),
       imagePalette: document.getElementById('imagePalette'),
@@ -1434,7 +1450,8 @@
       textHistoryTimer: null,
       lastMousePoint: null,
       imageImportReady: false,
-      imageImportUrl: ''
+      imageImportUrl: '',
+      waitingClipboardPaste: false
     };
 
     const RAINBOW = [
@@ -1688,7 +1705,17 @@
 
     function applyImportedImageToPixels() {
       if (!state.imageImportReady) return;
-      const nextPixels = convertImageToPixelLayer(importedImage);
+      let nextPixels;
+      try {
+        nextPixels = convertImageToPixelLayer(importedImage);
+      } catch (error) {
+        state.imageImportReady = false;
+        const isCorsError = error && (error.name === 'SecurityError' || String(error.message || '').toLowerCase().includes('tainted'));
+        alert(isCorsError
+          ? 'This image URL blocks pixel access (CORS). Try another URL, or download and import the file directly.'
+          : 'Cannot convert this image.');
+        return;
+      }
       state.pixels = nextPixels;
       makeBlankTextLayer();
       els.textValue.value = '';
@@ -1696,31 +1723,113 @@
       pushHistory();
     }
 
+    function clearObjectImageUrl() {
+      if (state.imageImportUrl) {
+        URL.revokeObjectURL(state.imageImportUrl);
+        state.imageImportUrl = '';
+      }
+    }
+
+    function loadImageIntoImporter(source, options = {}) {
+      const revokeObjectUrlAfterLoad = !!options.revokeObjectUrlAfterLoad;
+      state.imageImportReady = false;
+      importedImage.crossOrigin = options.crossOrigin || '';
+
+      importedImage.onload = () => {
+        state.imageImportReady = true;
+        applyImportedImageToPixels();
+        if (revokeObjectUrlAfterLoad) {
+          clearObjectImageUrl();
+        }
+      };
+      importedImage.onerror = () => {
+        state.imageImportReady = false;
+        alert('Cannot load this image source.');
+      };
+      importedImage.src = source;
+    }
+
     function onImageFileChange() {
       const file = els.imageFile.files && els.imageFile.files[0];
       state.imageImportReady = false;
       if (!file) return;
 
-      if (state.imageImportUrl) {
-        URL.revokeObjectURL(state.imageImportUrl);
-        state.imageImportUrl = '';
-      }
+      loadImageFileIntoImporter(file);
+    }
+
+    function loadImageFileIntoImporter(file) {
+      if (!file) return;
+      clearObjectImageUrl();
 
       const url = URL.createObjectURL(file);
       state.imageImportUrl = url;
-      importedImage.onload = () => {
-        state.imageImportReady = true;
-        applyImportedImageToPixels();
-        if (state.imageImportUrl) {
-          URL.revokeObjectURL(state.imageImportUrl);
-          state.imageImportUrl = '';
+      loadImageIntoImporter(url, { revokeObjectUrlAfterLoad: true });
+    }
+
+    function onImageUrlLoad() {
+      const raw = (els.imageUrl.value || '').trim();
+      if (!raw) {
+        alert('Please enter an image URL.');
+        return;
+      }
+
+      let parsed;
+      try {
+        parsed = new URL(raw);
+      } catch (_) {
+        alert('Invalid URL. Please use a full http(s) image URL.');
+        return;
+      }
+
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        alert('Only http(s) image URLs are supported.');
+        return;
+      }
+
+      clearObjectImageUrl();
+      loadImageIntoImporter(parsed.href, { crossOrigin: 'anonymous' });
+    }
+
+    async function pasteImageFromClipboard() {
+      if (!navigator.clipboard || typeof navigator.clipboard.read !== 'function') {
+        state.waitingClipboardPaste = true;
+        alert('Direct clipboard read is not supported here. Press Ctrl+V to paste the image.');
+        return;
+      }
+
+      try {
+        const clipboardItems = await navigator.clipboard.read();
+        for (const item of clipboardItems) {
+          const imageType = item.types.find(type => type.startsWith('image/'));
+          if (!imageType) continue;
+          const blob = await item.getType(imageType);
+          const file = new File([blob], 'clipboard-image.' + imageType.split('/')[1], { type: imageType });
+          state.waitingClipboardPaste = false;
+          loadImageFileIntoImporter(file);
+          return;
         }
-      };
-      importedImage.onerror = () => {
-        state.imageImportReady = false;
-        alert('Cannot load this image file.');
-      };
-      importedImage.src = url;
+        alert('Clipboard does not contain an image.');
+      } catch (_) {
+        state.waitingClipboardPaste = true;
+        alert('Browser blocked direct clipboard read. Press Ctrl+V to paste image, or allow Clipboard permission for this site.');
+      }
+    }
+
+    function onDocumentPaste(event) {
+      const items = Array.from((event.clipboardData && event.clipboardData.items) || []);
+      const imageItem = items.find(item => item.type && item.type.startsWith('image/'));
+      if (!imageItem) {
+        if (state.waitingClipboardPaste) {
+          alert('Clipboard does not contain an image.');
+        }
+        return;
+      }
+
+      const file = imageItem.getAsFile();
+      if (!file) return;
+      event.preventDefault();
+      state.waitingClipboardPaste = false;
+      loadImageFileIntoImporter(file);
     }
 
     function initBrushSizeOptions() {
@@ -2924,6 +3033,14 @@
     els.rainbowText.addEventListener('change', () => { rebuildLiveTextLayer(); pushHistory(); });
     els.sample.addEventListener('click', makeSample);
     els.imageFile.addEventListener('change', onImageFileChange);
+    els.loadImageUrl.addEventListener('click', onImageUrlLoad);
+    els.pasteImageClipboard.addEventListener('click', pasteImageFromClipboard);
+    els.imageUrl.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        onImageUrlLoad();
+      }
+    });
     els.imagePixelSize.addEventListener('input', updateImagePixelSizeLabel);
     els.imagePixelSize.addEventListener('change', () => {
       if (state.imageImportReady) applyImportedImageToPixels();
@@ -3031,6 +3148,7 @@
         redo();
       }
     });
+    document.addEventListener('paste', onDocumentPaste);
 
     makeBlankPixels();
     makeBlankTextLayer();
