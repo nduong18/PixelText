@@ -424,9 +424,9 @@
     .workspace-top h2 { margin: 0; }
 
     .workspace-preview {
-      padding: 10px 12px;
+      padding: 8px 10px;
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 14px;
       background:
         linear-gradient(135deg, rgba(139, 92, 246, .10), rgba(6, 182, 212, .05)),
         rgba(10, 13, 24, .72);
@@ -435,61 +435,115 @@
 
     .workspace-preview-head {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
     }
 
     .workspace-preview-head h2 {
-      margin: 2px 0 0;
+      margin: 0;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
     }
 
-    .workspace-kicker {
+    .workspace-preview-head-right {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: var(--accent-2);
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .08em;
     }
 
-    .workspace-preview-grid {
+    .workspace-preview-head-right strong {
+      font-size: 12px;
+      color: #e2e8f0;
+      min-width: 44px;
+      text-align: right;
+    }
+
+    .preview-toggle {
+      width: 30px;
+      height: 30px;
+    }
+
+    .workspace-preview-body {
       display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(240px, .9fr);
-      gap: 8px;
-      align-items: end;
+      gap: 6px;
     }
 
-    .workspace-preview-slider,
-    .workspace-preview-actions {
+    .preview-line {
+      display: grid;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preview-line-top {
+      grid-template-columns: minmax(0, 1fr) minmax(180px, 280px);
+    }
+
+    .preview-line-bottom {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .preview-zoom-inline {
+      display: grid;
+      grid-template-columns: auto minmax(120px, 1fr);
+      gap: 8px;
+      align-items: center;
       min-width: 0;
     }
 
-    .workspace-preview-slider label {
-      margin-bottom: 4px;
+    .preview-zoom-inline label {
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      white-space: nowrap;
     }
 
-    .workspace-preview-actions {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+    .preview-zoom-inline input[type="range"] {
+      width: min(420px, 100%);
     }
 
     .workspace-preview-actions button {
-      min-height: 38px;
+      min-height: 30px;
     }
 
-    .workspace-preview .hint {
-      margin-top: 6px;
-      font-size: 12px;
-      line-height: 1.35;
+    .workspace-look-item label {
+      margin-bottom: 2px;
+      font-size: 10px;
+      letter-spacing: .02em;
+    }
+
+    .workspace-look-item label i {
+      color: var(--accent-2);
+      font-size: 10px;
+    }
+
+    .workspace-look-item input[type="color"] {
+      height: 24px;
+      min-height: 24px;
+      padding: 1px;
+      border-radius: 7px;
+    }
+
+    .workspace-grid-toggle {
+      margin: 12px 0 0;
+      font-size: 11px;
+      justify-content: flex-start;
+    }
+
+    .workspace-preview.collapsed .workspace-preview-body {
+      display: none;
+    }
+
+    .workspace-preview.collapsed .preview-toggle i {
+      transform: rotate(-90deg);
     }
 
     .stage-wrap {
@@ -627,23 +681,17 @@
       gap: 8px;
     }
 
-    details.advanced-panel summary::before {
-      content: "013";
-      font-family: "Font Awesome 6 Free";
-      font-weight: 900;
+    details.advanced-panel summary i:first-child {
       color: var(--accent-2);
     }
 
-    details.advanced-panel summary::after {
-      content: "078";
-      font-family: "Font Awesome 6 Free";
-      font-weight: 900;
+    details.advanced-panel summary .advanced-caret {
       margin-left: auto;
       color: var(--muted);
       transition: transform .18s ease;
     }
 
-    details.advanced-panel[open] summary::after {
+    details.advanced-panel[open] summary .advanced-caret {
       transform: rotate(180deg);
     }
 
@@ -687,7 +735,7 @@
       .app { gap: 14px; padding: 14px; }
       aside, main { height: calc(100vh - 28px); }
       .row.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .workspace-preview-grid { grid-template-columns: 1fr; }
+      .preview-line-top { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 900px) {
@@ -721,7 +769,8 @@
       .mini-grid,
       .mini-grid.two,
       .mini-grid.four,
-      .workspace-preview-grid,
+      .preview-line-top,
+      .preview-line-bottom,
       .workspace-preview-actions {
         grid-template-columns: 1fr;
       }
@@ -784,45 +833,15 @@
         <div class="row one">
           <button id="clear"><i class="fa-solid fa-trash-can"></i><span>Clear</span></button>
         </div>
-        <p class="hint">Phím tắt: Ctrl/⌘ + Z để undo, Ctrl/⌘ + Y hoặc Shift + Ctrl/⌘ + Z để redo.</p>
+        <p class="hint">Shortcuts: Ctrl/Cmd + Z to undo, Ctrl/Cmd + Y or Shift + Ctrl/Cmd + Z to redo.</p>
       </div>
-
-      <div class="group">
-        <h2><i class="fa-solid fa-palette"></i><span>Look</span></h2>
-        <div class="row two">
-          <div>
-            <label for="bgColor">Editor background</label>
-            <input id="bgColor" type="color" value="#000000" />
-          </div>
-          <div>
-            <label for="gridColor">Grid color</label>
-            <input id="gridColor" type="color" value="#484848" />
-          </div>
-        </div>
-        <label class="checkbox-row">
-          <input id="showGrid" type="checkbox" checked />
-          Show grid in editor
-        </label>
-        <div class="row two">
-          <div>
-            <label for="exportGap">Export pixel gap</label>
-            <input id="exportGap" type="number" min="0" max="20" value="1" />
-          </div>
-          <div>
-            <label for="exportScale">Algodoo export scale</label>
-            <input id="exportScale" type="number" min="1" max="10" value="4" />
-          </div>
-        </div>
-        <p class="hint">PNG export stays transparent and grid-free. Algodoo export scale creates a larger PNG so pixels stay sharper after import.</p>
-      </div>
-
 
       <div class="group">
         <h2><i class="fa-solid fa-font"></i><span>Pixel text</span></h2>
         <div class="row one">
           <div>
             <label for="textValue">Text</label>
-            <textarea id="textValue" rows="3" placeholder="Nháº­p text muá»‘n táº¡o pixel..."></textarea>
+            <textarea id="textValue" rows="3" placeholder="Enter text to generate pixel art..."></textarea>
           </div>
         </div>
         <div class="row three">
@@ -874,7 +893,7 @@
         <div class="row one">
           <button id="sample"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Sample</span></button>
         </div>
-        <p class="hint">Text sẽ hiển thị realtime khi bạn gõ. <strong>Pixel detail %</strong> giúp cùng một text hiển thị với ít pixel hơn hoặc nhiều pixel hơn.</p>
+        <p class="hint">Text updates in real time while you type. <strong>Pixel detail %</strong> controls how coarse or detailed the same text appears.</p>
       </div>
 
       <div class="group">
@@ -956,13 +975,6 @@
             <input id="algodooAdhesion" type="number" step="0.01" value="0.00" />
           </div>
         </div>
-        <div class="row one">
-          <div>
-            <label for="algodooMaterialName">Material name</label>
-            <input id="algodooMaterialName" data-algodoo-field type="text" value="" placeholder="Default, Glass, Gold, Helium, Ice, Rubber, Steel, Stone, Wood..." />
-          </div>
-        </div>
-
         <h2 style="margin-top: 12px;"><i class="fa-solid fa-code"></i><span>Script menu</span></h2>
         <div class="row three">
           <div>
@@ -1026,9 +1038,9 @@
         </label>
 
         <details class="advanced-panel">
-          <summary>Advanced script menu applied to every pixel</summary>
+          <summary><i class="fa-solid fa-sliders"></i><span>Advanced</span><i class="fa-solid fa-chevron-down advanced-caret"></i></summary>
           <div class="advanced-body">
-            <p class="hint">Các giá trị bên dưới sẽ được ghi vào mọi object pixel khi export .phn. Để trống một ô nếu không muốn ghi property đó. <code>entityID</code> và <code>geomID</code> do Algodoo tự tạo nên không export.</p>
+            <p class="hint">Values below are applied to every exported pixel object in the .phn file. Leave a field empty to skip that property. <code>entityID</code> and <code>geomID</code> are auto-generated by Algodoo and are not exported.</p>
 
             <div class="section-label">Physics</div>
             <div class="mini-grid three">
@@ -1060,7 +1072,7 @@
             <div class="mini-grid three">
               <div>
                 <label for="algodooBody">body</label>
-                <input id="algodooBody" data-algodoo-field type="text" value="" placeholder="0 nếu glued vào background" />
+                <input id="algodooBody" data-algodoo-field type="text" value="" placeholder="Use 0 if glued to background" />
               </div>
               <div>
                 <label for="algodooMaterialVelocity">materialVelocity</label>
@@ -1076,7 +1088,7 @@
               </div>
               <div>
                 <label for="algodooTimeToLive">timeToLive</label>
-                <input id="algodooTimeToLive" data-algodoo-field type="text" value="" placeholder="+inf / Ä‘á»ƒ trá»‘ng" />
+                <input id="algodooTimeToLive" data-algodoo-field type="text" value="" placeholder="+inf / leave empty" />
               </div>
               <label class="checkbox-row">
                 <input id="algodooHeteroCollide" data-algodoo-field type="checkbox" />
@@ -1134,7 +1146,7 @@
             <div class="mini-grid two">
               <div>
                 <label for="algodooTexture">texture</label>
-                <input id="algodooTexture" data-algodoo-field type="text" value="" placeholder="Tên texture nếu có" />
+                <input id="algodooTexture" data-algodoo-field type="text" value="" placeholder="Texture name if available" />
               </div>
               <div>
                 <label for="algodooResources">resources</label>
@@ -1211,10 +1223,10 @@
         <div class="row one">
           <div>
             <label for="algodooExtraScript">Extra script properties applied to every object</label>
-            <textarea id="algodooExtraScript" rows="4" placeholder="Ví dụ: text := &quot;&quot;; controllerAcc := 11; velocityDamping := [0, 0, 0];"></textarea>
+            <textarea id="algodooExtraScript" rows="4" placeholder="Example: text := &quot;&quot;; controllerAcc := 11; velocityDamping := [0, 0, 0];"></textarea>
           </div>
         </div>
-        <p class="hint">Xuất file .phn tạo từng pixel thành object riêng trong Algodoo. Chọn Box hoặc Circle, chỉnh Material/Script một lần và tool sẽ áp dụng cho toàn bộ pixel.</p>
+        <p class="hint">Exporting .phn creates one object per pixel in Algodoo. Choose Box or Circle, configure Material/Script once, and apply it to all pixels.</p>
       </div>
       <div class="group">
         <h2><i class="fa-solid fa-file-export"></i><span>Export</span></h2>
@@ -1228,21 +1240,37 @@
     <main>
       <section class="workspace-preview">
         <div class="workspace-preview-head">
-          <div>
-            <div class="workspace-kicker"><i class="fa-solid fa-magnifying-glass-plus"></i><span>Preview controls</span></div>
-            <h2><i class="fa-solid fa-display"></i><span>Workspace preview</span></h2>
+          <h2><i class="fa-solid fa-sliders"></i><span>Preview</span></h2>
+          <div class="workspace-preview-head-right">
+            <strong id="previewZoomValue">100%</strong>
+            <button id="previewToggle" type="button" class="group-toggle preview-toggle" aria-label="Toggle preview" aria-expanded="true">
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
           </div>
-          <strong id="previewZoomValue">100%</strong>
         </div>
-        <div class="workspace-preview-grid">
-          <div class="workspace-preview-slider">
-            <label for="previewZoom">Preview zoom</label>
-            <input id="previewZoom" type="range" min="10" max="300" step="5" value="100" />
-            <p class="hint">Slider này chỉ phóng to/thu nhỏ vùng xem trước, không làm đổi kích thước PNG khi export.</p>
+        <div id="previewBody" class="workspace-preview-body">
+          <div class="preview-line preview-line-top">
+            <div class="preview-zoom-inline">
+              <label for="previewZoom"><i class="fa-solid fa-magnifying-glass"></i><span>Zoom</span></label>
+              <input id="previewZoom" type="range" min="10" max="300" step="5" value="100" />
+            </div>
+            <div class="workspace-preview-actions">
+              <button id="fitPreview"><i class="fa-solid fa-expand"></i><span>Fit</span></button>
+            </div>
           </div>
-          <div class="workspace-preview-actions">
-            <button id="fitPreview"><i class="fa-solid fa-maximize"></i><span>Fit H + W</span></button>
-            <button id="resetPreview"><i class="fa-solid fa-compress"></i><span>100%</span></button>
+          <div class="preview-line preview-line-bottom">
+            <div class="workspace-look-item">
+              <label for="bgColor"><i class="fa-solid fa-fill-drip"></i><span> BG</span></label>
+              <input id="bgColor" type="color" value="#000000" />
+            </div>
+            <div class="workspace-look-item">
+              <label for="gridColor"><i class="fa-solid fa-border-all"></i><span> Grid</span></label>
+              <input id="gridColor" type="color" value="#484848" />
+            </div>
+            <label class="checkbox-row workspace-grid-toggle">
+              <input id="showGrid" type="checkbox" checked />
+              Grid
+            </label>
           </div>
         </div>
       </section>
@@ -1256,7 +1284,6 @@
       <div class="stage-wrap">
         <canvas id="pixelCanvas"></canvas>
       </div>
-      <p class="hint">Tip: draw by dragging. Live text is previewed in realtime. Algodoo preview supports Box/Circle, and merge mode with Box keeps scenes lighter.</p>
     </main>
   </div>
 
@@ -1270,12 +1297,11 @@
       bgColor: document.getElementById('bgColor'),
       gridColor: document.getElementById('gridColor'),
       showGrid: document.getElementById('showGrid'),
-      exportGap: document.getElementById('exportGap'),
-      exportScale: document.getElementById('exportScale'),
       previewZoom: document.getElementById('previewZoom'),
       previewZoomValue: document.getElementById('previewZoomValue'),
+      previewToggle: document.getElementById('previewToggle'),
+      previewBody: document.getElementById('previewBody'),
       fitPreview: document.getElementById('fitPreview'),
-      resetPreview: document.getElementById('resetPreview'),
       textValue: document.getElementById('textValue'),
       textX: document.getElementById('textX'),
       textY: document.getElementById('textY'),
@@ -1304,7 +1330,6 @@
       algodooRestitution: document.getElementById('algodooRestitution'),
       algodooAttraction: document.getElementById('algodooAttraction'),
       algodooAdhesion: document.getElementById('algodooAdhesion'),
-      algodooMaterialName: document.getElementById('algodooMaterialName'),
       algodooLayer: document.getElementById('algodooLayer'),
       algodooZDepth: document.getElementById('algodooZDepth'),
       algodooEdgeBlur: document.getElementById('algodooEdgeBlur'),
@@ -1680,8 +1705,6 @@
         bg: state.bg,
         grid: state.grid,
         showGrid: state.showGrid,
-        exportGap: els.exportGap.value,
-        exportScale: els.exportScale.value,
         algodooPixelSize: els.algodooPixelSize.value,
         algodooGap: els.algodooGap.value,
         algodooOriginX: els.algodooOriginX.value,
@@ -1689,7 +1712,6 @@
         algodooObjectType: els.algodooObjectType.value,
         algodooMode: els.algodooMode.value,
         algodooMaterial: els.algodooMaterial.value,
-        algodooMaterialName: els.algodooMaterialName.value,
         algodooAdvanced: getAlgodooAdvancedState(),
         algodooFixed: els.algodooFixed.checked,
         algodooCollide: els.algodooCollide.checked,
@@ -1716,8 +1738,6 @@
         a.bg === b.bg &&
         a.grid === b.grid &&
         a.showGrid === b.showGrid &&
-        a.exportGap === b.exportGap &&
-        a.exportScale === b.exportScale &&
         a.algodooPixelSize === b.algodooPixelSize &&
         a.algodooGap === b.algodooGap &&
         a.algodooOriginX === b.algodooOriginX &&
@@ -1725,7 +1745,6 @@
         a.algodooObjectType === b.algodooObjectType &&
         a.algodooMode === b.algodooMode &&
         a.algodooMaterial === b.algodooMaterial &&
-        a.algodooMaterialName === b.algodooMaterialName &&
         JSON.stringify(a.algodooAdvanced || {}) === JSON.stringify(b.algodooAdvanced || {}) &&
         a.algodooFixed === b.algodooFixed &&
         a.algodooCollide === b.algodooCollide &&
@@ -1788,8 +1807,6 @@
       els.bgColor.value = state.bg;
       els.gridColor.value = state.grid;
       els.showGrid.checked = state.showGrid;
-      els.exportGap.value = snap.exportGap || '1';
-      els.exportScale.value = snap.exportScale || '4';
       els.algodooPixelSize.value = snap.algodooPixelSize || '0.08';
       els.algodooGap.value = snap.algodooGap || '0.01';
       els.algodooOriginX.value = snap.algodooOriginX || '0';
@@ -1797,7 +1814,6 @@
       els.algodooObjectType.value = snap.algodooObjectType || 'box';
       els.algodooMode.value = snap.algodooMode || 'pixel';
       els.algodooMaterial.value = snap.algodooMaterial || 'default';
-      els.algodooMaterialName.value = snap.algodooMaterialName || '';
       restoreAlgodooAdvancedState(snap.algodooAdvanced || {});
       syncAlgodooObjectTypeUI();
       els.algodooFixed.checked = snap.algodooFixed ?? true;
@@ -1843,9 +1859,8 @@
       canvas.style.height = Math.max(1, Math.round(canvas.height * state.viewZoom)) + 'px';
       els.previewZoom.value = percent;
       els.previewZoomValue.textContent = percent + '%';
-      const exportScale = els.exportScale ? getNumberInput(els.exportScale, 4, 1, 10) : 1;
-      const exportW = canvas.width * exportScale;
-      const exportH = canvas.height * exportScale;
+      const exportW = canvas.width;
+      const exportH = canvas.height;
       els.stats.textContent = state.cols + ' x ' + state.rows + ' cells | editor ' + canvas.width + ' x ' + canvas.height + ' px | export ' + exportW + ' x ' + exportH + ' px | preview ' + percent + '%';
       refreshWorkspaceCursor();
     }
@@ -1868,6 +1883,13 @@
       }
 
       setPreviewZoom(clamp(percent, 10, 300));
+    }
+
+    function setPreviewCollapsed(collapsed) {
+      const section = document.querySelector('.workspace-preview');
+      if (!section || !els.previewToggle) return;
+      section.classList.toggle('collapsed', collapsed);
+      els.previewToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
     }
 
     function resizeCanvas() {
@@ -1968,6 +1990,16 @@
       }
     }
 
+    function commitLiveTextToPixels(clearTextInput = true) {
+      if (!state.liveTextPixels.some(Boolean)) return false;
+      for (let i = 0; i < state.liveTextPixels.length; i++) {
+        if (state.liveTextPixels[i]) state.pixels[i] = state.liveTextPixels[i];
+      }
+      makeBlankTextLayer();
+      if (clearTextInput) els.textValue.value = '';
+      return true;
+    }
+
     function paintAt(x, y, firstClick = false) {
       if (!inBounds(x, y)) return;
 
@@ -1977,6 +2009,7 @@
       }
 
       if (state.tool === 'erase') {
+        if (firstClick) commitLiveTextToPixels(true);
         applyBrush(x, y, null);
         render();
       }
@@ -2259,10 +2292,6 @@
       return '"' + String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
     }
 
-    function getAlgodooMaterialName() {
-      return (els.algodooMaterialName && els.algodooMaterialName.value.trim()) || '';
-    }
-
     function getExtraAlgodooScriptLines() {
       return (els.algodooExtraScript.value || '')
         .split('\n')
@@ -2334,7 +2363,6 @@
     function pushCommonAlgodooProperties(lines, run, i, collideSet, fixed, objectType) {
       const baseZ = getAlgodooFloat(els.algodooZDepth, 5, -999999, 999999);
       const zDepth = baseZ + (i % 1000) * 0.000001;
-      const materialName = getAlgodooMaterialName();
       const bodyValue = getAdvancedValue('algodooBody', '').trim();
 
       lines.push('    color := ' + hexToAlgodooColor(run.color) + ';');
@@ -2348,8 +2376,6 @@
       lines.push('    attraction := ' + fmtAlgodooNumber(getAlgodooFloat(els.algodooAttraction, 0, -100000, 100000)) + ';');
       lines.push('    adhesion := ' + fmtAlgodooNumber(getAlgodooFloat(els.algodooAdhesion, 0, -100000, 100000)) + ';');
       lines.push('    layer := ' + getAlgodooInt(els.algodooLayer, 0, -100000, 100000) + ';');
-
-      if (materialName) lines.push('    materialName := ' + quoteAlgodooString(materialName) + ';');
 
       lines.push('    airFrictionMult := ' + fmtAlgodooNumber(advancedNumber('algodooAirFrictionMult', 1, -100000, 100000)) + ';');
       lines.push('    angle := ' + fmtAlgodooNumber(advancedNumber('algodooAngle', 0, -100000, 100000)) + ';');
@@ -2425,7 +2451,6 @@
       els.algodooRestitution.value = Number(preset.restitution).toFixed(2);
       els.algodooAttraction.value = Number(preset.attraction).toFixed(2);
       els.algodooAdhesion.value = Number(preset.adhesion).toFixed(2);
-      els.algodooMaterialName.value = preset.name || '';
     }
 
     function markAlgodooMaterialCustom() {
@@ -2454,14 +2479,14 @@
 
       const runs = collectVisibleRuns(mode);
       if (!runs.length) {
-        alert('Không có pixel nào để export sang Algodoo.');
+        alert('There are no pixels to export to Algodoo.');
         return null;
       }
 
       if (mode === 'pixel' && runs.length > 8000) {
         const ok = confirm(
-          'Bạn đang export ' + runs.length + ' object riêng lẻ. ' +
-          'Algodoo có thể rất lag hoặc load lâu. Bạn vẫn muốn export?'
+          'You are exporting ' + runs.length + ' separate objects. ' +
+          'Algodoo may lag or load slowly. Do you still want to export?'
         );
         if (!ok) return null;
       }
@@ -2535,14 +2560,7 @@
       a.remove();
     }
 
-    function renderExportPng(targetCtx, exportScale, exportGap) {
-      const safeScale = clamp(parseInt(exportScale, 10) || 1, 1, 10);
-      const exportCell = state.cell * safeScale;
-      const safeGap = clamp(Math.round((parseInt(exportGap, 10) || 0) * safeScale), 0, Math.max(0, exportCell - 1));
-      const insetA = Math.floor(safeGap / 2);
-      const insetB = Math.ceil(safeGap / 2);
-      const drawSize = Math.max(1, exportCell - insetA - insetB);
-
+    function renderExportPng(targetCtx) {
       targetCtx.clearRect(0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
 
       const drawLayer = layer => {
@@ -2551,7 +2569,7 @@
             const color = layer[indexOf(x, y)];
             if (!color) continue;
             targetCtx.fillStyle = color;
-            targetCtx.fillRect(x * exportCell + insetA, y * exportCell + insetA, drawSize, drawSize);
+            targetCtx.fillRect(x * state.cell, y * state.cell, state.cell, state.cell);
           }
         }
       };
@@ -2561,24 +2579,22 @@
     }
 
     function exportPng() {
-      const exportScale = getNumberInput(els.exportScale, 4, 1, 10);
-      const exportGap = getNumberInput(els.exportGap, 1, 0, 20);
       const output = document.createElement('canvas');
-      output.width = state.cols * state.cell * exportScale;
-      output.height = state.rows * state.cell * exportScale;
+      output.width = state.cols * state.cell;
+      output.height = state.rows * state.cell;
 
       const maxCanvasSide = 16384;
       if (output.width > maxCanvasSide || output.height > maxCanvasSide) {
-        alert('Export is too large for the browser. Reduce Algodoo export scale, Cell px, Columns, or Rows.');
+        alert('Export is too large for the browser. Reduce Cell px, Columns, or Rows.');
         return;
       }
 
       const outputCtx = output.getContext('2d');
-      renderExportPng(outputCtx, exportScale, exportGap);
+      renderExportPng(outputCtx);
 
       const a = document.createElement('a');
       a.href = output.toDataURL('image/png');
-      a.download = 'pixel-art-algodoo-x' + exportScale + '.png';
+      a.download = 'pixel-art-algodoo.png';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -2673,12 +2689,14 @@
     els.gridColor.addEventListener('input', e => { state.grid = e.target.value; render(); });
     els.gridColor.addEventListener('change', pushHistory);
     els.showGrid.addEventListener('change', e => { state.showGrid = e.target.checked; render(); pushHistory(); });
-    els.exportScale.addEventListener('input', () => { applyPreviewZoom(); });
-    els.exportScale.addEventListener('change', pushHistory);
-    els.exportGap.addEventListener('change', pushHistory);
     els.previewZoom.addEventListener('input', e => setPreviewZoom(e.target.value));
     els.fitPreview.addEventListener('click', fitPreviewToWidth);
-    els.resetPreview.addEventListener('click', () => setPreviewZoom(100));
+    if (els.previewToggle) {
+      els.previewToggle.addEventListener('click', () => {
+        const section = document.querySelector('.workspace-preview');
+        setPreviewCollapsed(!(section && section.classList.contains('collapsed')));
+      });
+    }
 
     [
       els.textValue,
@@ -2707,8 +2725,7 @@
       els.algodooFriction,
       els.algodooRestitution,
       els.algodooAttraction,
-      els.algodooAdhesion,
-      els.algodooMaterialName
+      els.algodooAdhesion
     ].forEach(el => el.addEventListener('input', markAlgodooMaterialCustom));
 
     [
@@ -2745,6 +2762,7 @@
     initBrushSizeOptions();
     syncAlgodooObjectTypeUI();
     setWorkspaceCursorTool(state.tool);
+    setPreviewCollapsed(true);
     render();
 
     canvas.addEventListener('pointerdown', event => {
