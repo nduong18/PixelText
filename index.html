@@ -966,6 +966,24 @@
             </select>
           </div>
         </div>
+        <div class="row one">
+          <div>
+            <div class="range-head">
+              <label for="imageDetail">Detail %</label>
+              <strong id="imageDetailValue">100</strong>
+            </div>
+            <input id="imageDetail" type="range" min="50" max="300" step="10" value="100" />
+          </div>
+        </div>
+        <div class="row one">
+          <div>
+            <div class="range-head">
+              <label for="imageQuality">Quality % (pixel count)</label>
+              <strong id="imageQualityValue">100</strong>
+            </div>
+            <input id="imageQuality" type="range" min="50" max="300" step="10" value="100" />
+          </div>
+        </div>
         <p class="hint">Upload an image file or load an image URL, then convert it into the current workspace resolution as a separate pixel layer.</p>
       </div>
 
@@ -1392,6 +1410,10 @@
       pasteImageClipboard: document.getElementById('pasteImageClipboard'),
       imagePixelSize: document.getElementById('imagePixelSize'),
       imagePixelSizeValue: document.getElementById('imagePixelSizeValue'),
+      imageDetail: document.getElementById('imageDetail'),
+      imageDetailValue: document.getElementById('imageDetailValue'),
+      imageQuality: document.getElementById('imageQuality'),
+      imageQualityValue: document.getElementById('imageQualityValue'),
       imagePalette: document.getElementById('imagePalette'),
       imageFitMode: document.getElementById('imageFitMode'),
       undo: document.getElementById('undo'),
@@ -1451,7 +1473,9 @@
       lastMousePoint: null,
       imageImportReady: false,
       imageImportUrl: '',
-      waitingClipboardPaste: false
+      waitingClipboardPaste: false,
+      imageBaseCols: 80,
+      imageBaseRows: 32
     };
 
     const RAINBOW = [
@@ -1660,12 +1684,15 @@
 
     function convertImageToPixelLayer(sourceImage) {
       const pixelSize = getNumberInput(els.imagePixelSize, 1, 1, 24);
+      const detailFactor = getNumberInput(els.imageDetail, 100, 50, 300) / 100;
       const paletteMode = els.imagePalette.value;
       const fitMode = els.imageFitMode.value;
 
       const tiny = document.createElement('canvas');
-      tiny.width = Math.max(1, Math.floor(state.cols / pixelSize));
-      tiny.height = Math.max(1, Math.floor(state.rows / pixelSize));
+      const baseTinyWidth = Math.max(1, Math.floor(state.cols / pixelSize));
+      const baseTinyHeight = Math.max(1, Math.floor(state.rows / pixelSize));
+      tiny.width = Math.max(1, Math.round(baseTinyWidth * detailFactor));
+      tiny.height = Math.max(1, Math.round(baseTinyHeight * detailFactor));
       const tinyCtx = tiny.getContext('2d');
       tinyCtx.imageSmoothingEnabled = true;
       drawImageFitted(tinyCtx, sourceImage, tiny.width, tiny.height, fitMode);
@@ -1678,7 +1705,7 @@
       scaled.width = state.cols;
       scaled.height = state.rows;
       const scaledCtx = scaled.getContext('2d');
-      scaledCtx.imageSmoothingEnabled = false;
+      scaledCtx.imageSmoothingEnabled = tiny.width > scaled.width || tiny.height > scaled.height;
       scaledCtx.clearRect(0, 0, scaled.width, scaled.height);
       scaledCtx.drawImage(tiny, 0, 0, tiny.width, tiny.height, 0, 0, scaled.width, scaled.height);
 
@@ -1703,8 +1730,28 @@
       els.imagePixelSizeValue.textContent = String(getNumberInput(els.imagePixelSize, 1, 1, 24));
     }
 
+    function updateImageDetailLabel() {
+      if (!els.imageDetailValue || !els.imageDetail) return;
+      els.imageDetailValue.textContent = String(getNumberInput(els.imageDetail, 100, 50, 300));
+    }
+
+    function updateImageQualityLabel() {
+      if (!els.imageQualityValue || !els.imageQuality) return;
+      els.imageQualityValue.textContent = String(getNumberInput(els.imageQuality, 100, 50, 300));
+    }
+
     function applyImportedImageToPixels() {
       if (!state.imageImportReady) return;
+      const qualityFactor = getNumberInput(els.imageQuality, 100, 50, 300) / 100;
+      const baseCols = clamp(parseInt(state.imageBaseCols, 10) || state.cols, 1, 300);
+      const baseRows = clamp(parseInt(state.imageBaseRows, 10) || state.rows, 1, 200);
+      const targetCols = clamp(Math.round(baseCols * qualityFactor), 1, 300);
+      const targetRows = clamp(Math.round(baseRows * qualityFactor), 1, 200);
+
+      if (targetCols !== state.cols || targetRows !== state.rows) {
+        resizeGrid(targetCols, targetRows, state.cell, false, false);
+      }
+
       let nextPixels;
       try {
         nextPixels = convertImageToPixelLayer(importedImage);
@@ -1733,6 +1780,8 @@
     function loadImageIntoImporter(source, options = {}) {
       const revokeObjectUrlAfterLoad = !!options.revokeObjectUrlAfterLoad;
       state.imageImportReady = false;
+      state.imageBaseCols = state.cols;
+      state.imageBaseRows = state.rows;
       importedImage.crossOrigin = options.crossOrigin || '';
 
       importedImage.onload = () => {
@@ -3045,6 +3094,14 @@
     els.imagePixelSize.addEventListener('change', () => {
       if (state.imageImportReady) applyImportedImageToPixels();
     });
+    els.imageDetail.addEventListener('input', updateImageDetailLabel);
+    els.imageDetail.addEventListener('change', () => {
+      if (state.imageImportReady) applyImportedImageToPixels();
+    });
+    els.imageQuality.addEventListener('input', updateImageQualityLabel);
+    els.imageQuality.addEventListener('change', () => {
+      if (state.imageImportReady) applyImportedImageToPixels();
+    });
     els.imagePalette.addEventListener('change', () => {
       if (state.imageImportReady) applyImportedImageToPixels();
     });
@@ -3100,6 +3157,8 @@
 
     initBrushSizeOptions();
     updateImagePixelSizeLabel();
+    updateImageDetailLabel();
+    updateImageQualityLabel();
     syncAlgodooObjectTypeUI();
     setWorkspaceCursorTool(state.tool);
     setPreviewCollapsed(true);
