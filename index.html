@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -528,6 +528,17 @@
       position: fixed;
       left: 0;
       top: 0;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: opacity .08s ease;
+    }
+
+    .workspace-cursor.active {
+      opacity: 1;
+    }
+
+    .workspace-cursor.icon-mode {
       width: 30px;
       height: 30px;
       display: grid;
@@ -537,21 +548,25 @@
       border: 1px solid rgba(226, 232, 240, .48);
       border-radius: 10px;
       box-shadow: 0 10px 24px rgba(0, 0, 0, .4);
-      transform: translate(-50%, -50%) scale(.88);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 9999;
-      transition: opacity .1s ease, transform .1s ease;
+      transform: translate(-50%, -50%);
     }
 
-    .workspace-cursor.active {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    .workspace-cursor i {
+    .workspace-cursor.icon-mode i {
+      display: block;
       font-size: 13px;
       color: inherit;
+    }
+
+    .workspace-cursor.brush-mode {
+      border: 2px solid rgba(56, 189, 248, .95);
+      border-radius: 4px;
+      background: rgba(56, 189, 248, .15);
+      box-shadow: 0 0 0 1px rgba(2, 6, 23, .75), inset 0 0 0 1px rgba(2, 6, 23, .35);
+      transform: none;
+    }
+
+    .workspace-cursor.brush-mode i {
+      display: none;
     }
 
     .hint {
@@ -756,6 +771,12 @@
             <input id="drawColor" type="color" value="#ff00ff" />
           </div>
         </div>
+        <div class="row one">
+          <div>
+            <label for="brushSize">Brush range (draw/erase)</label>
+            <select id="brushSize"></select>
+          </div>
+        </div>
         <div class="row two">
           <button id="undo" disabled><i class="fa-solid fa-rotate-left"></i><span>Undo</span></button>
           <button id="redo" disabled><i class="fa-solid fa-rotate-right"></i><span>Next / Redo</span></button>
@@ -801,7 +822,7 @@
         <div class="row one">
           <div>
             <label for="textValue">Text</label>
-            <textarea id="textValue" rows="3" placeholder="Nhập text muốn tạo pixel..."></textarea>
+            <textarea id="textValue" rows="3" placeholder="Nháº­p text muá»‘n táº¡o pixel..."></textarea>
           </div>
         </div>
         <div class="row three">
@@ -850,12 +871,10 @@
           <input id="rainbowText" type="checkbox" checked />
           Rainbow text stripes
         </label>
-        <div class="row three">
-          <button id="bakeText" class="primary"><i class="fa-solid fa-stamp"></i><span>Bake text</span></button>
-          <button id="fitText"><i class="fa-solid fa-text-width"></i><span>Fit text</span></button>
+        <div class="row one">
           <button id="sample"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Sample</span></button>
         </div>
-        <p class="hint">Text sẽ hiển thị realtime khi bạn gõ. <strong>Pixel detail %</strong> giúp cùng một text hiển thị với ít pixel hơn hoặc nhiều pixel hơn. Nếu muốn chỉnh tay từng pixel của chữ, hãy bấm <strong>Bake text</strong> để nhập chữ vào layer vẽ.</p>
+        <p class="hint">Text sẽ hiển thị realtime khi bạn gõ. <strong>Pixel detail %</strong> giúp cùng một text hiển thị với ít pixel hơn hoặc nhiều pixel hơn.</p>
       </div>
 
       <div class="group">
@@ -1057,7 +1076,7 @@
               </div>
               <div>
                 <label for="algodooTimeToLive">timeToLive</label>
-                <input id="algodooTimeToLive" data-algodoo-field type="text" value="" placeholder="+inf / để trống" />
+                <input id="algodooTimeToLive" data-algodoo-field type="text" value="" placeholder="+inf / Ä‘á»ƒ trá»‘ng" />
               </div>
               <label class="checkbox-row">
                 <input id="algodooHeteroCollide" data-algodoo-field type="checkbox" />
@@ -1247,6 +1266,7 @@
 
     const els = {
       drawColor: document.getElementById('drawColor'),
+      brushSize: document.getElementById('brushSize'),
       bgColor: document.getElementById('bgColor'),
       gridColor: document.getElementById('gridColor'),
       showGrid: document.getElementById('showGrid'),
@@ -1266,8 +1286,6 @@
       textPadding: document.getElementById('textPadding'),
       lineGap: document.getElementById('lineGap'),
       rainbowText: document.getElementById('rainbowText'),
-      bakeText: document.getElementById('bakeText'),
-      fitText: document.getElementById('fitText'),
       sample: document.getElementById('sample'),
       undo: document.getElementById('undo'),
       redo: document.getElementById('redo'),
@@ -1316,13 +1334,15 @@
       bg: '#000000',
       grid: '#484848',
       showGrid: true,
+      brushSize: 1,
       viewZoom: 1,
       history: [],
       historyIndex: -1,
       historyLimit: 80,
       isDown: false,
       lastCellKey: '',
-      textHistoryTimer: null
+      textHistoryTimer: null,
+      lastMousePoint: null
     };
 
     const RAINBOW = [
@@ -1336,6 +1356,9 @@
       fill: 'fa-fill-drip',
       picker: 'fa-eye-dropper'
     };
+
+    const BRUSH_MIN = 1;
+    const BRUSH_MAX = 12;
 
     const ALGODOO_MATERIALS = {
       default: { name: '', density: 1.00, friction: 0.50, restitution: 0.00, attraction: 0.00, adhesion: 0.00 },
@@ -1462,6 +1485,42 @@
     function getIntRaw(el, fallback = 0) {
       const parsed = parseInt(el.value, 10);
       return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function initBrushSizeOptions() {
+      if (!els.brushSize) return;
+      const options = [];
+      for (let size = BRUSH_MIN; size <= BRUSH_MAX; size++) {
+        const selected = size === state.brushSize ? ' selected' : '';
+        options.push('<option value="' + size + '"' + selected + '>' + size + 'x' + size + '</option>');
+      }
+      els.brushSize.innerHTML = options.join('');
+      els.brushSize.value = String(state.brushSize);
+    }
+
+    function getBrushSize() {
+      if (!els.brushSize) return BRUSH_MIN;
+      const size = getNumberInput(els.brushSize, state.brushSize, BRUSH_MIN, BRUSH_MAX);
+      state.brushSize = size;
+      return size;
+    }
+
+    function getBrushOrigin(x, y, size) {
+      const offset = Math.floor(size / 2);
+      return { x: x - offset, y: y - offset };
+    }
+
+    function applyBrush(x, y, color) {
+      const size = getBrushSize();
+      const origin = getBrushOrigin(x, y, size);
+      for (let by = 0; by < size; by++) {
+        for (let bx = 0; bx < size; bx++) {
+          const px = origin.x + bx;
+          const py = origin.y + by;
+          if (!inBounds(px, py)) continue;
+          setPixel(px, py, color);
+        }
+      }
     }
 
     function splitTextLines(text) {
@@ -1788,6 +1847,7 @@
       const exportW = canvas.width * exportScale;
       const exportH = canvas.height * exportScale;
       els.stats.textContent = state.cols + ' x ' + state.rows + ' cells | editor ' + canvas.width + ' x ' + canvas.height + ' px | export ' + exportW + ' x ' + exportH + ' px | preview ' + percent + '%';
+      refreshWorkspaceCursor();
     }
 
     function setPreviewZoom(percent) {
@@ -1912,12 +1972,12 @@
       if (!inBounds(x, y)) return;
 
       if (state.tool === 'draw') {
-        setPixel(x, y, state.color);
+        applyBrush(x, y, state.color);
         render();
       }
 
       if (state.tool === 'erase') {
-        setPixel(x, y, null);
+        applyBrush(x, y, null);
         render();
       }
 
@@ -1944,7 +2004,7 @@
 
     function createWorkspaceCursor() {
       const cursor = document.createElement('div');
-      cursor.className = 'workspace-cursor';
+      cursor.className = 'workspace-cursor icon-mode';
       cursor.innerHTML = '<i class="fa-solid fa-pencil"></i>';
       document.body.appendChild(cursor);
       return cursor;
@@ -1956,18 +2016,68 @@
       const icon = workspaceCursor.querySelector('i');
       const iconClass = TOOL_CURSOR_ICONS[tool] || TOOL_CURSOR_ICONS.draw;
       icon.className = 'fa-solid ' + iconClass;
+      const isBrushTool = tool === 'draw' || tool === 'erase';
+      workspaceCursor.classList.toggle('brush-mode', isBrushTool);
+      workspaceCursor.classList.toggle('icon-mode', !isBrushTool);
+      refreshWorkspaceCursor();
+    }
+
+    function getBrushCursorRect(cellX, cellY) {
+      const size = getBrushSize();
+      const origin = getBrushOrigin(cellX, cellY, size);
+      const startX = Math.max(0, origin.x);
+      const startY = Math.max(0, origin.y);
+      const endX = Math.min(state.cols - 1, origin.x + size - 1);
+      const endY = Math.min(state.rows - 1, origin.y + size - 1);
+      if (startX > endX || startY > endY) return null;
+
+      const zoomedCell = state.cell * state.viewZoom;
+      const rect = canvas.getBoundingClientRect();
+      return {
+        left: rect.left + startX * zoomedCell,
+        top: rect.top + startY * zoomedCell,
+        width: (endX - startX + 1) * zoomedCell,
+        height: (endY - startY + 1) * zoomedCell
+      };
+    }
+
+    function refreshWorkspaceCursor() {
+      if (!state.lastMousePoint) return;
+      updateWorkspaceCursor(state.lastMousePoint);
     }
 
     function updateWorkspaceCursor(event) {
       if (!event || event.pointerType !== 'mouse') return;
       const x = event.clientX;
       const y = event.clientY;
+      state.lastMousePoint = { clientX: x, clientY: y, pointerType: 'mouse' };
       const rect = els.stageWrap.getBoundingClientRect();
       const inside = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+      if (!inside) {
+        hideWorkspaceCursor();
+        return;
+      }
 
-      workspaceCursor.style.left = x + 'px';
-      workspaceCursor.style.top = y + 'px';
-      workspaceCursor.classList.toggle('active', inside);
+      if (state.tool === 'draw' || state.tool === 'erase') {
+        const cell = cellFromEvent(event);
+        const brushRect = getBrushCursorRect(cell.x, cell.y);
+        if (!brushRect) {
+          hideWorkspaceCursor();
+          return;
+        }
+
+        workspaceCursor.style.left = brushRect.left + 'px';
+        workspaceCursor.style.top = brushRect.top + 'px';
+        workspaceCursor.style.width = brushRect.width + 'px';
+        workspaceCursor.style.height = brushRect.height + 'px';
+      } else {
+        workspaceCursor.style.left = x + 'px';
+        workspaceCursor.style.top = y + 'px';
+        workspaceCursor.style.width = '30px';
+        workspaceCursor.style.height = '30px';
+      }
+
+      workspaceCursor.classList.add('active');
     }
 
     function hideWorkspaceCursor() {
@@ -2049,28 +2159,11 @@
       if (recordHistory) scheduleTextHistory();
     }
 
-    function fitTextNow() {
-      const fit = getTextFitSize();
-      if (!fit) return;
-      resizeGrid(fit.cols, fit.rows, state.cell, true, false);
-      rebuildLiveTextLayer();
-      pushHistory();
-    }
-
-    function bakeTextToPixels() {
-      if (!state.liveTextPixels.some(Boolean)) return;
-      for (let i = 0; i < state.liveTextPixels.length; i++) {
-        if (state.liveTextPixels[i]) state.pixels[i] = state.liveTextPixels[i];
-      }
-      els.textValue.value = '';
-      makeBlankTextLayer();
-      render();
-      pushHistory();
-    }
-
     function makeSample() {
       state.cell = 8;
       els.drawColor.value = '#ff00ff';
+      state.brushSize = 1;
+      if (els.brushSize) els.brushSize.value = '1';
       state.color = '#ff00ff';
       els.textScale.value = '2';
       els.pixelDensity.value = '100';
@@ -2569,6 +2662,12 @@
       rebuildLiveTextLayer();
       scheduleTextHistory();
     });
+    if (els.brushSize) {
+      els.brushSize.addEventListener('change', () => {
+        getBrushSize();
+        refreshWorkspaceCursor();
+      });
+    }
     els.bgColor.addEventListener('input', e => { state.bg = e.target.value; render(); });
     els.bgColor.addEventListener('change', pushHistory);
     els.gridColor.addEventListener('input', e => { state.grid = e.target.value; render(); });
@@ -2594,8 +2693,6 @@
 
     els.autoFitText.addEventListener('change', () => { updateLiveTextRealtime(true); });
     els.rainbowText.addEventListener('change', () => { rebuildLiveTextLayer(); pushHistory(); });
-    els.bakeText.addEventListener('click', bakeTextToPixels);
-    els.fitText.addEventListener('click', fitTextNow);
     els.sample.addEventListener('click', makeSample);
     els.undo.addEventListener('click', undo);
     els.redo.addEventListener('click', redo);
@@ -2645,6 +2742,7 @@
       el.addEventListener('change', pushHistory);
     });
 
+    initBrushSizeOptions();
     syncAlgodooObjectTypeUI();
     setWorkspaceCursorTool(state.tool);
     render();
