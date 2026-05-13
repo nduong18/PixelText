@@ -176,6 +176,58 @@
       opacity: .65;
     }
 
+    .group.is-collapsible > h2 {
+      margin-bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .group-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group-toggle {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #cbd5e1;
+      background: rgba(148, 163, 184, .12);
+      border: 1px solid rgba(148, 163, 184, .26);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .16s ease, border-color .16s ease;
+    }
+
+    .group-toggle:hover {
+      background: rgba(148, 163, 184, .20);
+      border-color: rgba(148, 163, 184, .4);
+    }
+
+    .group-toggle i {
+      font-size: 11px;
+      color: inherit;
+      width: auto;
+      transition: transform .2s ease;
+    }
+
+    .group-content {
+      margin-top: 12px;
+    }
+
+    .group.collapsed .group-content {
+      display: none;
+    }
+
+    .group.collapsed .group-toggle i {
+      transform: rotate(-90deg);
+    }
+
     .row {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -372,9 +424,9 @@
     .workspace-top h2 { margin: 0; }
 
     .workspace-preview {
-      padding: 16px;
+      padding: 10px 12px;
       border: 1px solid var(--border);
-      border-radius: 20px;
+      border-radius: 16px;
       background:
         linear-gradient(135deg, rgba(139, 92, 246, .10), rgba(6, 182, 212, .05)),
         rgba(10, 13, 24, .72);
@@ -385,24 +437,24 @@
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 8px;
+      margin-bottom: 8px;
       flex-wrap: wrap;
     }
 
     .workspace-preview-head h2 {
-      margin: 4px 0 0;
+      margin: 2px 0 0;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .workspace-kicker {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       color: var(--accent-2);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: .08em;
@@ -411,7 +463,7 @@
     .workspace-preview-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.6fr) minmax(240px, .9fr);
-      gap: 12px;
+      gap: 8px;
       align-items: end;
     }
 
@@ -421,16 +473,27 @@
     }
 
     .workspace-preview-slider label {
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     .workspace-preview-actions {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
+    }
+
+    .workspace-preview-actions button {
+      min-height: 38px;
+    }
+
+    .workspace-preview .hint {
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.35;
     }
 
     .stage-wrap {
+      position: relative;
       flex: 1;
       min-height: 260px;
       padding: 16px;
@@ -446,6 +509,7 @@
       border-radius: 22px;
       overflow: auto;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      cursor: none;
     }
 
     canvas {
@@ -454,10 +518,40 @@
       background: #000;
       border: 1px solid rgba(226, 232, 240, .20);
       border-radius: 12px;
-      cursor: crosshair;
+      cursor: none;
       touch-action: none;
       max-width: none;
       box-shadow: 0 16px 45px rgba(0,0,0,.38);
+    }
+
+    .workspace-cursor {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, rgba(139, 92, 246, .9), rgba(6, 182, 212, .85));
+      border: 1px solid rgba(226, 232, 240, .48);
+      border-radius: 10px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .4);
+      transform: translate(-50%, -50%) scale(.88);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: opacity .1s ease, transform .1s ease;
+    }
+
+    .workspace-cursor.active {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .workspace-cursor i {
+      font-size: 13px;
+      color: inherit;
     }
 
     .hint {
@@ -647,25 +741,6 @@
       </div>
 
       <div class="group">
-        <h2><i class="fa-solid fa-border-all"></i><span>Canvas</span></h2>
-        <div class="row three">
-          <div>
-            <label for="cols">Columns</label>
-            <input id="cols" type="number" min="1" max="300" value="80" />
-          </div>
-          <div>
-            <label for="rows">Rows</label>
-            <input id="rows" type="number" min="1" max="200" value="32" />
-          </div>
-          <div>
-            <label for="cellSize">Cell px</label>
-            <input id="cellSize" type="number" min="2" max="60" value="14" />
-          </div>
-        </div>
-        <button id="applySize"><i class="fa-solid fa-up-right-and-down-left-from-center"></i><span>Apply size</span></button>
-      </div>
-
-      <div class="group">
         <h2><i class="fa-solid fa-pen-ruler"></i><span>Tools</span></h2>
         <div class="row two">
           <button data-tool="draw" class="tool active"><i class="fa-solid fa-pencil"></i><span>Draw</span></button>
@@ -681,6 +756,14 @@
             <input id="drawColor" type="color" value="#ff00ff" />
           </div>
         </div>
+        <div class="row two">
+          <button id="undo" disabled><i class="fa-solid fa-rotate-left"></i><span>Undo</span></button>
+          <button id="redo" disabled><i class="fa-solid fa-rotate-right"></i><span>Next / Redo</span></button>
+        </div>
+        <div class="row one">
+          <button id="clear"><i class="fa-solid fa-trash-can"></i><span>Clear</span></button>
+        </div>
+        <p class="hint">Phím tắt: Ctrl/⌘ + Z để undo, Ctrl/⌘ + Y hoặc Shift + Ctrl/⌘ + Z để redo.</p>
       </div>
 
       <div class="group">
@@ -1112,22 +1195,14 @@
             <textarea id="algodooExtraScript" rows="4" placeholder="Ví dụ: text := &quot;&quot;; controllerAcc := 11; velocityDamping := [0, 0, 0];"></textarea>
           </div>
         </div>
-
-        <button id="exportAlgodoo" class="primary"><i class="fa-solid fa-cube"></i><span>Export Algodoo .phn</span></button>
         <p class="hint">Xuất file .phn tạo từng pixel thành object riêng trong Algodoo. Chọn Box hoặc Circle, chỉnh Material/Script một lần và tool sẽ áp dụng cho toàn bộ pixel.</p>
       </div>
-
       <div class="group">
-        <h2><i class="fa-solid fa-bolt"></i><span>Actions</span></h2>
+        <h2><i class="fa-solid fa-file-export"></i><span>Export</span></h2>
         <div class="row two">
-          <button id="undo" disabled><i class="fa-solid fa-rotate-left"></i><span>Undo</span></button>
-          <button id="redo" disabled><i class="fa-solid fa-rotate-right"></i><span>Next / Redo</span></button>
-        </div>
-        <div class="row two">
-          <button id="clear"><i class="fa-solid fa-trash-can"></i><span>Clear</span></button>
           <button id="exportPng" class="primary"><i class="fa-solid fa-file-arrow-down"></i><span>Export PNG</span></button>
+          <button id="exportAlgodoo" class="primary"><i class="fa-solid fa-cube"></i><span>Export Algodoo .phn</span></button>
         </div>
-        <p class="hint">Phím tắt: Ctrl/⌘ + Z để undo, Ctrl/⌘ + Y hoặc Shift + Ctrl/⌘ + Z để redo.</p>
       </div>
     </aside>
 
@@ -1147,7 +1222,7 @@
             <p class="hint">Slider này chỉ phóng to/thu nhỏ vùng xem trước, không làm đổi kích thước PNG khi export.</p>
           </div>
           <div class="workspace-preview-actions">
-            <button id="fitPreview"><i class="fa-solid fa-arrows-left-right-to-line"></i><span>Fit width</span></button>
+            <button id="fitPreview"><i class="fa-solid fa-maximize"></i><span>Fit H + W</span></button>
             <button id="resetPreview"><i class="fa-solid fa-compress"></i><span>100%</span></button>
           </div>
         </div>
@@ -1171,10 +1246,6 @@
     const ctx = canvas.getContext('2d');
 
     const els = {
-      cols: document.getElementById('cols'),
-      rows: document.getElementById('rows'),
-      cellSize: document.getElementById('cellSize'),
-      applySize: document.getElementById('applySize'),
       drawColor: document.getElementById('drawColor'),
       bgColor: document.getElementById('bgColor'),
       gridColor: document.getElementById('gridColor'),
@@ -1258,6 +1329,13 @@
       '#ff0000', '#ff8c00', '#ffff00', '#00ff00',
       '#00d5ff', '#004cff', '#7a00ff', '#ff00ff'
     ];
+
+    const TOOL_CURSOR_ICONS = {
+      draw: 'fa-pencil',
+      erase: 'fa-eraser',
+      fill: 'fa-fill-drip',
+      picker: 'fa-eye-dropper'
+    };
 
     const ALGODOO_MATERIALS = {
       default: { name: '', density: 1.00, friction: 0.50, restitution: 0.00, attraction: 0.00, adhesion: 0.00 },
@@ -1529,10 +1607,6 @@
       state.pixels = next;
       makeBlankTextLayer();
 
-      els.cols.value = state.cols;
-      els.rows.value = state.rows;
-      els.cellSize.value = state.cell;
-
       resizeCanvas();
       if (rebuildText) rebuildLiveTextLayer();
       else render();
@@ -1652,9 +1726,6 @@
       state.showGrid = snap.showGrid;
       state.color = snap.drawColor;
 
-      els.cols.value = state.cols;
-      els.rows.value = state.rows;
-      els.cellSize.value = state.cell;
       els.bgColor.value = state.bg;
       els.gridColor.value = state.grid;
       els.showGrid.checked = state.showGrid;
@@ -1727,8 +1798,16 @@
 
     function fitPreviewToWidth() {
       const availableWidth = Math.max(120, els.stageWrap.clientWidth - 36);
-      const percent = clamp(Math.floor((availableWidth / canvas.width) * 100), 10, 300);
-      setPreviewZoom(percent);
+      const availableHeight = Math.max(120, els.stageWrap.clientHeight - 36);
+      const fitByHeight = Math.floor((availableHeight / canvas.height) * 100);
+      const fitByWidth = Math.floor((availableWidth / canvas.width) * 100);
+
+      let percent = fitByHeight;
+      if (canvas.width * (percent / 100) > availableWidth) {
+        percent = fitByWidth;
+      }
+
+      setPreviewZoom(clamp(percent, 10, 300));
     }
 
     function resizeCanvas() {
@@ -1860,14 +1939,39 @@
       document.querySelectorAll('.tool').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tool === tool);
       });
+      setWorkspaceCursorTool(tool);
     }
 
-    function applySize() {
-      const nextCols = getNumberInput(els.cols, 80, 1, 300);
-      const nextRows = getNumberInput(els.rows, 32, 1, 200);
-      const nextCell = getNumberInput(els.cellSize, 14, 2, 60);
-      resizeGrid(nextCols, nextRows, nextCell, true, true);
-      pushHistory();
+    function createWorkspaceCursor() {
+      const cursor = document.createElement('div');
+      cursor.className = 'workspace-cursor';
+      cursor.innerHTML = '<i class="fa-solid fa-pencil"></i>';
+      document.body.appendChild(cursor);
+      return cursor;
+    }
+
+    const workspaceCursor = createWorkspaceCursor();
+
+    function setWorkspaceCursorTool(tool) {
+      const icon = workspaceCursor.querySelector('i');
+      const iconClass = TOOL_CURSOR_ICONS[tool] || TOOL_CURSOR_ICONS.draw;
+      icon.className = 'fa-solid ' + iconClass;
+    }
+
+    function updateWorkspaceCursor(event) {
+      if (!event || event.pointerType !== 'mouse') return;
+      const x = event.clientX;
+      const y = event.clientY;
+      const rect = els.stageWrap.getBoundingClientRect();
+      const inside = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+
+      workspaceCursor.style.left = x + 'px';
+      workspaceCursor.style.top = y + 'px';
+      workspaceCursor.classList.toggle('active', inside);
+    }
+
+    function hideWorkspaceCursor() {
+      workspaceCursor.classList.remove('active');
     }
 
     function drawTextToLiveLayer(text, startX, startY, scale, color, rainbow, lineGapCells = 0, density = 1) {
@@ -1936,8 +2040,6 @@
       if (els.autoFitText.checked && (els.textValue.value || '').length) {
         const fit = getTextFitSize();
         if (fit) {
-          els.cols.value = fit.cols;
-          els.rows.value = fit.rows;
           if (fit.cols !== state.cols || fit.rows !== state.rows) {
             resizeGrid(fit.cols, fit.rows, state.cell, true, false);
           }
@@ -1950,8 +2052,6 @@
     function fitTextNow() {
       const fit = getTextFitSize();
       if (!fit) return;
-      els.cols.value = fit.cols;
-      els.rows.value = fit.rows;
       resizeGrid(fit.cols, fit.rows, state.cell, true, false);
       rebuildLiveTextLayer();
       pushHistory();
@@ -1970,7 +2070,6 @@
 
     function makeSample() {
       state.cell = 8;
-      els.cellSize.value = state.cell;
       els.drawColor.value = '#ff00ff';
       state.color = '#ff00ff';
       els.textScale.value = '2';
@@ -1984,7 +2083,7 @@
       els.rainbowText.checked = true;
       els.algodooObjectType.value = 'box';
       syncAlgodooObjectTypeUI();
-      els.textValue.value = '100 COUNTRIES\nRILEY MARBLES';
+      els.textValue.value = 'nduong18';
       makeBlankPixels();
       updateLiveTextRealtime(false);
       pushHistory();
@@ -2392,11 +2491,79 @@
       a.remove();
     }
 
+    function movePixelTextGroupToTop() {
+      const sidebar = document.querySelector('aside');
+      if (!sidebar) return;
+      const groups = Array.from(sidebar.querySelectorAll(':scope > .group'));
+      const pixelGroup = groups.find(group => {
+        const title = group.querySelector(':scope > h2 span');
+        return title && title.textContent.trim().toLowerCase() === 'pixel text';
+      });
+      const firstGroup = groups[0];
+      if (!pixelGroup || !firstGroup || pixelGroup === firstGroup) return;
+      sidebar.insertBefore(pixelGroup, firstGroup);
+    }
+
+    function setGroupCollapsed(group, collapsed) {
+      group.classList.toggle('collapsed', collapsed);
+      const toggle = group.querySelector(':scope > h2 .group-toggle');
+      if (toggle) toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    }
+
+    function initCollapsibleGroups() {
+      const groups = Array.from(document.querySelectorAll('.group'));
+      groups.forEach(group => {
+        const heading = group.querySelector(':scope > h2');
+        if (!heading) return;
+
+        group.classList.add('is-collapsible');
+
+        if (!heading.querySelector('.group-title')) {
+          const title = document.createElement('span');
+          title.className = 'group-title';
+          while (heading.firstChild) title.appendChild(heading.firstChild);
+          heading.appendChild(title);
+        }
+
+        if (!group.querySelector(':scope > .group-content')) {
+          const content = document.createElement('div');
+          content.className = 'group-content';
+          const nodes = Array.from(group.childNodes).filter(node => node !== heading);
+          nodes.forEach(node => content.appendChild(node));
+          group.appendChild(content);
+        }
+
+        let toggle = heading.querySelector('.group-toggle');
+        if (!toggle) {
+          toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'group-toggle';
+          toggle.setAttribute('aria-label', 'Toggle section');
+          toggle.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+          heading.appendChild(toggle);
+        }
+
+        toggle.addEventListener('click', event => {
+          event.stopPropagation();
+          setGroupCollapsed(group, !group.classList.contains('collapsed'));
+        });
+
+        heading.addEventListener('click', event => {
+          if (event.target.closest('.group-toggle')) return;
+          setGroupCollapsed(group, !group.classList.contains('collapsed'));
+        });
+
+        setGroupCollapsed(group, true);
+      });
+    }
+
+    movePixelTextGroupToTop();
+    initCollapsibleGroups();
+
     document.querySelectorAll('.tool').forEach(btn => {
       btn.addEventListener('click', () => setTool(btn.dataset.tool));
     });
 
-    els.applySize.addEventListener('click', applySize);
     els.drawColor.addEventListener('input', e => {
       state.color = e.target.value;
       rebuildLiveTextLayer();
@@ -2479,9 +2646,11 @@
     });
 
     syncAlgodooObjectTypeUI();
+    setWorkspaceCursorTool(state.tool);
     render();
 
     canvas.addEventListener('pointerdown', event => {
+      updateWorkspaceCursor(event);
       canvas.setPointerCapture(event.pointerId);
       state.isDown = true;
       const cell = cellFromEvent(event);
@@ -2490,6 +2659,7 @@
     });
 
     canvas.addEventListener('pointermove', event => {
+      updateWorkspaceCursor(event);
       if (!state.isDown) return;
       const cell = cellFromEvent(event);
       const key = cell.x + ',' + cell.y;
@@ -2503,6 +2673,10 @@
       state.isDown = false;
       state.lastCellKey = '';
     });
+
+    els.stageWrap.addEventListener('pointerenter', updateWorkspaceCursor);
+    els.stageWrap.addEventListener('pointermove', updateWorkspaceCursor);
+    els.stageWrap.addEventListener('pointerleave', hideWorkspaceCursor);
 
     document.addEventListener('keydown', event => {
       const key = event.key.toLowerCase();
@@ -2527,3 +2701,5 @@
   </script>
 </body>
 </html>
+
+
